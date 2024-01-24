@@ -1,0 +1,73 @@
+---
+title: "Basic Examples"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Basic Examples}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(xactmomial)
+```
+
+
+```{r}
+
+n = c(12, 15)
+
+sample_data <- function() {
+  
+  T1 <- rmultinom(1, n[1], prob = c(.25, .25, .25, .25))
+  T2 <- rmultinom(1, n[2], prob = c(.25, .25, .25, .25))
+  
+  list(T1 = c(T1), T2 = c(T2))
+  
+}
+
+
+psi <- function(theta1, theta2) {
+  
+  sum(sqrt(theta1 * theta2)) |> acos()
+  
+}
+
+## the sample space
+
+S1 <- sspace_multinom(4, n[1])
+S2 <- sspace_multinom(4, n[2])
+
+Sobs <- sample_data()
+
+psi_hat <- matrix(NA, nrow(S1), nrow(S2))
+for(i in 1:nrow(S1)) {
+  for(j in 1:nrow(S2)) {
+    psi_hat[i, j] <- psi(S1[i,] / n[1], S2[j, ] / n[2])
+  }
+}
+
+psi_obs <- psi(Sobs$T1 / n[1], Sobs$T2 / n[2])
+II <- psi_hat >= psi_obs
+
+logC1 <- apply(S1, 1, log_multinom_coef, n[1])
+logC2 <- apply(S2, 1, log_multinom_coef, n[2])
+logC <- outer(logC1, logC2, "+")
+
+
+maxit <- 1e5
+seqmaxes <- rep(NA, maxit)
+for(i in 1:maxit) {
+  
+}
+
+
+```
+
+

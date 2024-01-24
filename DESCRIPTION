@@ -1,0 +1,15 @@
+Package: xactmomial
+Type: Package
+Title: Exact Inference for k Sample Multinomial Problems
+Version: 0.1.0
+Author: Michael C. Sachs
+Maintainer: Michael C. Sachs <sachsmc@gmail.com>
+Description: More about what it does (maybe more than one line)
+    Use four spaces when indenting paragraphs within the Description.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
