@@ -67,3 +67,23 @@ get_theta_random <- function(d = 4, nsamp = 75) {
 
 
 }
+
+
+reject_alt <- function(theta_cands, psi, psi0, minus1, II) {
+
+  res <- combn(1:nrow(theta_cands), 2, FUN = \(i) {
+    if(minus1 * psi(theta_cands[i[1], ], theta_cands[i[2], ]) <= minus1 * psi0) {
+      theta1 <- theta_cands[i[1], ]
+      theta2 <- theta_cands[i[2], ]
+
+      sum(exp((outer(c(S1 %*% log(theta1)), c(S2 %*% log(theta2)), "+") + logC)[II]))
+
+    } else {
+      NA
+    }
+  })
+  res[!is.na(res)]
+
+}
+
+

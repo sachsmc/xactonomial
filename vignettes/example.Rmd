@@ -26,25 +26,27 @@ n = c(12, 15)
 sample_data <- function() {
   
   T1 <- rmultinom(1, n[1], prob = c(.25, .25, .25, .25))
-  T2 <- rmultinom(1, n[2], prob = c(.25, .25, .25, .25))
+  T2 <- rmultinom(1, n[2], prob = c(.05, .15, .5, .3))
   
   list(T1 = c(T1), T2 = c(T2))
   
 }
-
+d <- 4
 
 psi <- function(theta1, theta2) {
   
-  sum(sqrt(theta1 * theta2)) |> acos()
+  sum(sqrt(theta1 * theta2)) |> acos() |> log()
   
 }
 
+Sobs <- sample_data()
+psi_obs <- psi(Sobs$T1 / n[1], Sobs$T2 / n[2])
+
+
 ## the sample space
 
-S1 <- sspace_multinom(4, n[1])
-S2 <- sspace_multinom(4, n[2])
-
-Sobs <- sample_data()
+S1 <- sspace_multinom(d, n[1])
+S2 <- sspace_multinom(d, n[2])
 
 psi_hat <- matrix(NA, nrow(S1), nrow(S2))
 for(i in 1:nrow(S1)) {
@@ -53,20 +55,39 @@ for(i in 1:nrow(S1)) {
   }
 }
 
-psi_obs <- psi(Sobs$T1 / n[1], Sobs$T2 / n[2])
-II <- psi_hat >= psi_obs
+#II <- psi_hat >= psi_obs
 
 logC1 <- apply(S1, 1, log_multinom_coef, n[1])
 logC2 <- apply(S2, 1, log_multinom_coef, n[2])
 logC <- outer(logC1, logC2, "+")
 
-
-maxit <- 1e5
-seqmaxes <- rep(NA, maxit)
-for(i in 1:maxit) {
+pvalue_psi0 <- function(psi0, maxit = 1000, chunksize = 50, lower = TRUE, target = .025) {
   
+  minus1 <- if(lower) 1 else -1
+  II <- if(lower) psi_hat >= psi_obs else psi_hat <= psi_obs
+  
+  seqmaxes <- rep(NA, maxit) 
+  for(i in 1:maxit) {
+    theta_cands <- get_theta_random(d, chunksize)
+    theta_cands2 <- reject_alt(theta_cands, psi, psi0, minus1, II)
+    if(length(theta_cands2) == 0) next
+    
+    seqmaxes[i] <- max(c(seqmaxes, theta_cands2), na.rm = TRUE)
+    if(seqmaxes[i] > target + .001) break
+    
+  }
+  (max(seqmaxes, na.rm = TRUE) |> print())
 }
 
+
+
+
+lower_limit <- uniroot(\(x) pvalue_psi0(x, chunksize = 10, maxit = 5000) - .025, 
+                       f.lower = -.025, f.upper = .975, 
+                interval = c(-10, 10), trace = 2, tol = .0005)
+upper_limit <- uniroot(\(x) pvalue_psi0(x, chunksize = 10, maxit = 5000, lower = FALSE) - .025, 
+                       f.lower = .975, f.upper = -.02499, 
+                interval = c(-10, 10), trace = 2, tol = .0005)
 
 ```
 
