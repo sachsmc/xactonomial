@@ -3,7 +3,7 @@
 #' @param d Dimension
 #' @param n Size
 #' @returns A matrix with d columns
-#'
+#' @export
 #' @examples
 #' d4s <- sspace_multinom(4, 8)
 #' stopifnot(abs(sum(apply(d4s, 1, dmultinom, prob = rep(.25, 4))) - 1) < 1e-12)
@@ -36,6 +36,7 @@ sspace_multinom <- function(d, n) {
 #' @param x Vector of observed counts in each cell
 #' @param size Total count
 #' @returns The log multinomial coefficient
+#' @export
 #' @examples
 #' #' @examples
 #' S0 <- sspace_multinom(4, 6)
@@ -55,6 +56,7 @@ log_multinom_coef<- function(x,sumx){
 #' @param d the dimension
 #' @param nsamp the number of samples to take uniformly in the d space
 #' @return The grid over Theta, the parameter space. A matrix with d columns and nsamp rows
+#' @export
 
 get_theta_random <- function(d = 4, nsamp = 75) {
 
@@ -69,14 +71,36 @@ get_theta_random <- function(d = 4, nsamp = 75) {
 }
 
 
-reject_alt <- function(theta_cands, psi, psi0, minus1, II) {
+#' Null probability for parameters
+#'
+#' Given a set of candidate parameter vectors, check if the null is satisfied, and if so, compute the probability for each element of the sample space
+#'
+#' @param theta_cands A matrix with samples in the rows and the parameters in the columns
+#' @param psi The function of interest mapping parameters to the real line
+#' @param psi0 The null boundary for testing psi <= psi0
+#' @param minus1 Either plus or minus 1
+#' @param SSpace A list with the relevant components
+#' @param II logical vector of sample space psi being more extreme than the observed
+#' @param logC log multinomial coefficient for each element of the sample space
+#'
+#' @returns A numeric vector
+#'
+#' @export
+#'
 
-  res <- combn(1:nrow(theta_cands), 2, FUN = \(i) {
-    if(minus1 * psi(theta_cands[i[1], ], theta_cands[i[2], ]) <= minus1 * psi0) {
-      theta1 <- theta_cands[i[1], ]
-      theta2 <- theta_cands[i[2], ]
+calc_prob_null <- function(theta_cands, psi, psi0, minus1, SSspacearr, II, logC) {
 
-      sum(exp((outer(c(S1 %*% log(theta1)), c(S2 %*% log(theta2)), "+") + logC)[II]))
+  k <- dim(SSpacearr)[2]
+  res <- combn(1:nrow(theta_cands), k, FUN = \(i) {
+
+    thisthetav <- lapply(i, \(ii) theta_cands[ii,])
+    thispsi <- do.call(psi, thisthetav)
+    thetavect <- do.call(rbind, thisthetav)
+
+    if(minus1 * thispsi <= minus1 * psi0) {
+
+      sum(exp((apply(SSpacearr, 3, \(SSpacemat) sum(diag(log(thetavect) %*% SSpacemat))) + logC)[II]))
+      #sum(exp((outer(c(S1 %*% log(theta1)), c(S2 %*% log(theta2)), "+") + logC)[II]))
 
     } else {
       NA
@@ -87,3 +111,21 @@ reject_alt <- function(theta_cands, psi, psi0, minus1, II) {
 }
 
 
+#' Get a matrix of indices for all possible combinations of vectors of lengths
+#'
+#' @param lengths A vector with the lengths of each index to expand
+#' @returns A matrix with length(lengths) columns and prod(lengths) rows
+#' @export
+expand_index <- function(lengths) {
+
+  orep <- prod(lengths)
+  cdex <- matrix(NA, nrow = orep, ncol = length(lengths))
+
+  for(i in 1:length(lengths)) {
+    cdex[,i] <- rep.int(rep.int(seq_len(lengths[i]), rep.int(1,
+                                         lengths[i])), orep / lengths[i])
+  }
+
+  cdex
+
+}

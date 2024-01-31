@@ -21,7 +21,7 @@ library(xactmomial)
 
 ```{r}
 
-n = c(12, 15)
+n = c(4, 7)
 
 sample_data <- function() {
   
@@ -39,55 +39,75 @@ psi <- function(theta1, theta2) {
   
 }
 
-Sobs <- sample_data()
-psi_obs <- psi(Sobs$T1 / n[1], Sobs$T2 / n[2])
+true_psi <- psi(c(.25, .25, .25, .25), c(.05, .15, .5, .3))
 
+run_one <- function() {
+
+Sobs <- sample_data()
+psi_obs <- do.call(psi, lapply(Sobs, \(x) x / sum(x)) |> unname())
 
 ## the sample space
 
-S1 <- sspace_multinom(d, n[1])
-S2 <- sspace_multinom(d, n[2])
+SSpace <- lapply(Sobs, \(x) sspace_multinom(d, sum(x)))
+bigdex <- expand_index(sapply(SSpace, nrow))
+psi_hat <- logC <- rep(NA, nrow(bigdex))
+SSpacearr <- array(dim = c(d, length(Sobs), nrow(bigdex)))
 
-psi_hat <- matrix(NA, nrow(S1), nrow(S2))
-for(i in 1:nrow(S1)) {
-  for(j in 1:nrow(S2)) {
-    psi_hat[i, j] <- psi(S1[i,] / n[1], S2[j, ] / n[2])
-  }
+for(i in 1:nrow(bigdex)) {
+  
+  
+  thisS <- lapply(1:length(bigdex[i,]), \(j){ 
+      Sj <- SSpace[[j]][bigdex[i, j],]
+      Sj 
+    })
+  SSpacearr[,,i] <- do.call(cbind, thisS)
+  psi_hat[i] <- do.call(psi, lapply(thisS, \(x) x / sum(x)))
+  logC[i] <- sum(sapply(thisS, \(x) log_multinom_coef(x, sum(x))))
 }
 
-#II <- psi_hat >= psi_obs
 
-logC1 <- apply(S1, 1, log_multinom_coef, n[1])
-logC2 <- apply(S2, 1, log_multinom_coef, n[2])
-logC <- outer(logC1, logC2, "+")
 
-pvalue_psi0 <- function(psi0, maxit = 1000, chunksize = 50, lower = TRUE, target = .025) {
+pvalue_psi0 <- function(psi0, maxit = 1000, chunksize = 50, lower = TRUE, target = .025, psi, SSpacearr, logC) {
   
   minus1 <- if(lower) 1 else -1
   II <- if(lower) psi_hat >= psi_obs else psi_hat <= psi_obs
+  d <- dim(SSpacearr)[1]
   
   seqmaxes <- rep(NA, maxit) 
   for(i in 1:maxit) {
     theta_cands <- get_theta_random(d, chunksize)
-    theta_cands2 <- reject_alt(theta_cands, psi, psi0, minus1, II)
-    if(length(theta_cands2) == 0) next
+    these_probs <- calc_prob_null(theta_cands, psi, psi0, minus1, SSpacearr, II, logC)
+    if(length(these_probs) == 0) next
     
-    seqmaxes[i] <- max(c(seqmaxes, theta_cands2), na.rm = TRUE)
+    seqmaxes[i] <- max(c(seqmaxes, these_probs), na.rm = TRUE)
     if(seqmaxes[i] > target + .001) break
     
   }
-  (max(seqmaxes, na.rm = TRUE) |> print())
+  max(seqmaxes, na.rm = TRUE)
 }
 
+pvalue_psi0(-5, maxit = 100, chunksize = 10, psi = psi, SSpacearr = SSpacearr, logC = logC)
 
 
-
-lower_limit <- uniroot(\(x) pvalue_psi0(x, chunksize = 10, maxit = 5000) - .025, 
+lower_limit <- uniroot(\(x) pvalue_psi0(x, chunksize = 10, maxit = 5000, S1 = S1, S2 = S2, logC = logC) - .025, 
                        f.lower = -.025, f.upper = .975, 
                 interval = c(-10, 10), trace = 2, tol = .0005)
-upper_limit <- uniroot(\(x) pvalue_psi0(x, chunksize = 10, maxit = 5000, lower = FALSE) - .025, 
+upper_limit <- uniroot(\(x) pvalue_psi0(x, chunksize = 10, maxit = 5000, lower = FALSE, S1 = S1, S2 = S2, logC = logC) - .025, 
                        f.lower = .975, f.upper = -.02499, 
                 interval = c(-10, 10), trace = 2, tol = .0005)
+
+
+c(lower_limit$root, upper_limit$root)
+
+}
+
+library(parallel)
+
+cover1 <- mclapply(1:100, \(i) run_one(), mc.cores = 100)
+
+sapply(cover1, \(x) {
+  x[1] <= true_psi & x[2] >= true_psi
+}) |> mean() 
 
 ```
 
