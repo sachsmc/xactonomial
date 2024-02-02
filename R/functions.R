@@ -46,7 +46,7 @@ sspace_multinom <- function(d, n) {
 #' logC<- outer(logC0,logC1,'+')
 #'
 log_multinom_coef<- function(x,sumx){
-  lgamma(sumx+1) - sum( lgamma(x+1) )
+  lfactorial(sumx) - sum( lfactorial(x) )
 }
 
 
@@ -118,14 +118,8 @@ calc_prob_null <- function(theta_cands, psi, psi0, minus1, SSspacearr, II, logC)
 #' @export
 expand_index <- function(lengths) {
 
-  orep <- prod(lengths)
-  cdex <- matrix(NA, nrow = orep, ncol = length(lengths))
-
-  for(i in 1:length(lengths)) {
-    cdex[,i] <- rep.int(rep.int(seq_len(lengths[i]), rep.int(1,
-                                         lengths[i])), orep / lengths[i])
-  }
-
-  cdex
+  do.call(expand.grid, lapply(lengths, seq_len)) |>
+    as.matrix()
 
 }
+
