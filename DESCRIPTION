@@ -1,4 +1,4 @@
-Package: xactmomial
+Package: xactonomial
 Type: Package
 Title: Exact Inference for k Sample Multinomial Problems
 Version: 0.1.0

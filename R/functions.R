@@ -90,22 +90,28 @@ get_theta_random <- function(d = 4, nsamp = 75) {
 
 calc_prob_null <- function(theta_cands, psi, psi0, minus1, SSspacearr, II, logC) {
 
-  k <- dim(SSpacearr)[2]
-  res <- combn(1:nrow(theta_cands), k, FUN = \(i) {
 
-    thisthetav <- lapply(i, \(ii) theta_cands[ii,])
-    thispsi <- do.call(psi, thisthetav)
-    thetavect <- do.call(rbind, thisthetav)
+  checkpsi <- minus1 * apply(theta_cands, MAR = 1, psi) <= minus1 * psi0
 
+  if(sum(checkpsi) == 0) return(NA)
+  theta_cands <- theta_cands[checkpsi, , drop = FALSE]
+
+
+  res <- rep(NA, nrow(theta_cands))
+
+  for(i in 1:nrow(theta_cands)) {
+
+    thistheta <- theta_cands[i,]
+    thispsi <- psi(thistheta)
     if(minus1 * thispsi <= minus1 * psi0) {
 
-      sum(exp((apply(SSpacearr, 3, \(SSpacemat) sum(diag(log(thetavect) %*% SSpacemat))) + logC)[II]))
-      #sum(exp((outer(c(S1 %*% log(theta1)), c(S2 %*% log(theta2)), "+") + logC)[II]))
+      res[i] <- sum(exp((colSums(t(SSpacearr) * log(thistheta)) + logC)[II])) ## way faster
+      #res[i] <- sum(exp((c(SSpacearr %*% log(thistheta)) + logC)[II]))
 
-    } else {
-      NA
     }
-  })
+
+  }
+
   res[!is.na(res)]
 
 }
@@ -122,4 +128,75 @@ expand_index <- function(lengths) {
     as.matrix()
 
 }
+
+
+#' Do the damn thing
+#'
+#' It is assumed that the parameters given to psi are in the same order as given in d_k
+#'
+#' @param psi Function that takes in a vector of parameters and outputs a real valued number
+#' @param data A list with k elements representing the vectors of counts of a k-sample multinomial
+#' @param alpha A 1 - alpha percent confidence interval will be computed
+#'
+
+xactonomial <- function(psi, data, alpha = .05) {
+
+  k <- length(data)
+  d_k <- sapply(data, length)
+  SSpace <- lapply(data, \(x) sspace_multinom(length(x), sum(x)))
+
+  bigdex <- expand_index(sapply(SSpace, nrow))
+  psi_hat <- logC <- rep(NA, nrow(bigdex))
+  psi_obs <- do.call(psi, lapply(data, \(x) x / sum(x)) |> unlist() |> list())
+
+  SSpacearr <- array(dim = c(nrow(bigdex), sum(d_k)))
+
+  for(i in 1:nrow(bigdex)) {
+
+    thisS <- lapply(1:length(bigdex[i,]), \(j){
+      Sj <- SSpace[[j]][bigdex[i, j],]
+      Sj
+    })
+    SSpacearr[i,] <- unlist(thisS)
+    psi_hat[i] <- do.call(psi, lapply(thisS, \(x) x / sum(x)) |> unlist() |> list())
+    logC[i] <- sum(sapply(thisS, \(x) log_multinom_coef(x, sum(x))))
+
+  }
+
+  pvalue_psi0 <- function(psi0, maxit = 500, chunksize = 500,
+                          lower = TRUE, target = alpha / 2) {
+
+    minus1 <- if(lower) 1 else -1
+    II <- if(lower) psi_hat >= psi_obs else psi_hat <= psi_obs
+
+    seqmaxes <- rep(NA, maxit)
+    for(i in 1:maxit) {
+      theta_cands <- do.call(cbind, lapply(d_k, \(i) get_theta_random(i, chunksize)))
+      these_probs <- calc_prob_null(theta_cands, psi, psi0, minus1, SSpacearr, II, logC)
+      if(length(these_probs) == 0) next
+
+      seqmaxes[i] <- max(c(seqmaxes, these_probs), na.rm = TRUE)
+      if(seqmaxes[i] > target + .001) break
+
+    }
+    max(seqmaxes, na.rm = TRUE)
+  }
+
+
+  lower_limit <- uniroot(\(x) pvalue_psi0(x) - alpha / 2,
+                         f.lower = -alpha/2, f.upper = 1 - alpha/2,
+                         interval = c(-100, 100), tol = .001)
+  upper_limit <- uniroot(\(x) pvalue_psi0(x, lower = FALSE) - alpha / 2,
+                         f.lower = 1 - alpha/2, f.upper = -alpha/2,
+                         interval = c(-100, 100), tol = .001)
+
+
+  list(estimate = psi_obs,
+    conf.int = c(lower_limit$root, upper_limit$root),
+    pvalue_function = pvalue_psi0)
+
+
+
+}
+
 
