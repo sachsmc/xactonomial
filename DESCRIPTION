@@ -1,9 +1,16 @@
 Package: xactonomial
 Type: Package
-Title: Exact Inference for k Sample Multinomial Problems
+Title: Exact Inference for Real-Valued Functionals of k-Sample Multinomial Parameters
 Version: 0.1.0
-Author: Michael C. Sachs
-Maintainer: Michael C. Sachs <sachsmc@gmail.com>
+Authors@R: 
+    c(person(given = "Michael C",
+             family = "Sachs",
+             role = c("aut", "cre"),
+             email = "sachsmc@gmail.com"),
+      person(given = "Michael P", 
+             family = "Fay", role = c("aut")))
+URL: https://github.com/sachsmc/xactonomial
+BugReports: https://github.com/sachsmc/xactonomial/issues
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
 License: MIT + file LICENSE

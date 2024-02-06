@@ -139,7 +139,8 @@ expand_index <- function(lengths) {
 #' @param alpha A 1 - alpha percent confidence interval will be computed
 #'
 
-xactonomial <- function(psi, data, alpha = .05) {
+xactonomial <- function(psi, data, alpha = .05,
+                        maxit = 500, chunksize = 500) {
 
   k <- length(data)
   d_k <- sapply(data, length)
@@ -163,8 +164,9 @@ xactonomial <- function(psi, data, alpha = .05) {
 
   }
 
-  pvalue_psi0 <- function(psi0, maxit = 500, chunksize = 500,
-                          lower = TRUE, target = alpha / 2) {
+  pvalue_psi0 <- function(psi0, maxit = maxit, chunksize = chunksize,
+                          lower = TRUE, target = alpha / 2,
+                          SSpacearr = SSpacearr, logC = logC) {
 
     minus1 <- if(lower) 1 else -1
     II <- if(lower) psi_hat >= psi_obs else psi_hat <= psi_obs
@@ -183,10 +185,12 @@ xactonomial <- function(psi, data, alpha = .05) {
   }
 
 
-  lower_limit <- uniroot(\(x) pvalue_psi0(x) - alpha / 2,
+  lower_limit <- uniroot(\(x) pvalue_psi0(x, maxit = maxit, chunksize = chunksize, lower = TRUE, target = alpha/2,
+                                          SSpacearr = SSpacearr, logC = logC) - alpha / 2,
                          f.lower = -alpha/2, f.upper = 1 - alpha/2,
                          interval = c(-100, 100), tol = .001)
-  upper_limit <- uniroot(\(x) pvalue_psi0(x, lower = FALSE) - alpha / 2,
+  upper_limit <- uniroot(\(x) pvalue_psi0(x, maxit = maxit, chunksize = chunksize, lower = FALSE, target = alpha/2,
+                                          SSpacearr = SSpacearr, logC = logC) - alpha / 2,
                          f.lower = 1 - alpha/2, f.upper = -alpha/2,
                          interval = c(-100, 100), tol = .001)
 
@@ -198,5 +202,8 @@ xactonomial <- function(psi, data, alpha = .05) {
 
 
 }
+
+
+
 
 

@@ -42,8 +42,32 @@ psi <- function(theta) {
 
 true_psi <- psi(c(.25, .25, .25, .25, .05, .15, .5, .3))
 
-data <- sample_data()
+## how bad is the bootstrap?
 
+run_one_bs <- function(i) {
+  data <- sample_data()
+  
+  bsamps <- replicate(2000, {
+    unlist(lapply(data, \(x) {
+      #newx <- c(rmultinom(1, sum(x), prob = x / sum(x)))
+      newx <- table(factor(sample(rep.int(1:length(x), times = x), sum(x), replace = TRUE), 
+             levels = 1:length(x)))
+      
+      newx / sum(newx)
+    })) |> psi()
+  })
+  
+  cib <- quantile(bsamps, c(.025, .975))
+  true_psi >= cib[1] & true_psi <= cib[2]
+    
+}
+
+cover_boot <- sapply(1:1000, run_one_bs)
+mean(cover_boot)
+```
+
+
+```{r}
 results <- xactonomial(psi, data, alpha = .05)
 
 exp(results$estimate)
