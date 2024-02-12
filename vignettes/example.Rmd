@@ -15,18 +15,20 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup}
-library(xactmomial)
+library(xactonomial)
+library(parallel)
 ```
 
 
 ```{r, cache = TRUE}
 
-n = c(8, 11)
+n = c(8, 10)
+true_theta <- c(.45, .15, .3, .1, .05, .15, .4, .4)
 
 sample_data <- function() {
   
-  T1 <- rmultinom(1, n[1], prob = c(.25, .25, .25, .25))
-  T2 <- rmultinom(1, n[2], prob = c(.05, .15, .5, .3))
+  T1 <- rmultinom(1, n[1], prob = true_theta[1:4])
+  T2 <- rmultinom(1, n[2], prob = true_theta[5:8])
   
   list(T1 = c(T1), T2 = c(T2))
   
@@ -36,11 +38,11 @@ psi <- function(theta) {
   
   theta1 <- theta[1:4]
   theta2 <- theta[5:8]
-  sum(sqrt(theta1 * theta2)) |> acos() |> log()
+  sum(sqrt(theta1 * theta2))
   
 }
 
-true_psi <- psi(c(.25, .25, .25, .25, .05, .15, .5, .3))
+true_psi <- psi(true_theta)
 
 ## how bad is the bootstrap?
 
@@ -57,23 +59,28 @@ run_one_bs <- function(i) {
     })) |> psi()
   })
   
-  cib <- quantile(bsamps, c(.025, .975))
+  cib <- quantile(bsamps, c(.05, .95))
   true_psi >= cib[1] & true_psi <= cib[2]
     
 }
 
-cover_boot <- sapply(1:1000, run_one_bs)
+cover_boot <- sapply(1:200, run_one_bs)
 mean(cover_boot)
 ```
 
 
 ```{r}
-results <- xactonomial(psi, data, alpha = .05)
 
-exp(results$estimate)
-exp(results$conf.int)
+xmres <- mclapply(1:200, \(i) {
+  
+    data <- sample_data()
+    results <- xactonomial(psi, data, alpha = .1, psi_limits = c(0,1))
+  
+  results$conf.int
+}, mc.cores = 100)
 
-results$pvalue_function(psi0 = log(.5))
+
+
 
 ```
 

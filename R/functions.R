@@ -88,27 +88,31 @@ get_theta_random <- function(d = 4, nsamp = 75) {
 #' @export
 #'
 
-calc_prob_null <- function(theta_cands, psi, psi0, minus1, SSspacearr, II, logC) {
+calc_prob_null <- function(theta_cands, psi, psi0, minus1, SSspacearr, logC, II) {
 
 
-  checkpsi <- minus1 * apply(theta_cands, MAR = 1, psi) <= minus1 * psi0
+  checkpsi <- if(minus1 == 1) {
+    apply(theta_cands, MAR = 1, psi) <= psi0
+  } else {
+    apply(theta_cands, MAR = 1, psi) >= psi0
+  }
 
   if(sum(checkpsi) == 0) return(NA)
   theta_cands <- theta_cands[checkpsi, , drop = FALSE]
-
+  m <- nrow(SSpacearr)
+  n <- ncol(SSpacearr)
+  SSpacearr <- SSpacearr[II,]
+  logC <- logC[II]
 
   res <- rep(NA, nrow(theta_cands))
 
   for(i in 1:nrow(theta_cands)) {
 
     thistheta <- theta_cands[i,]
-    thispsi <- psi(thistheta)
-    if(minus1 * thispsi <= minus1 * psi0) {
 
-      res[i] <- sum(exp((colSums(t(SSpacearr) * log(thistheta)) + logC)[II])) ## way faster
+      res[i] <- sum(exp((.colSums(t(SSpacearr) * log(thistheta), m = n, n = sum(II)) +
+                           logC))) ## way faster
       #res[i] <- sum(exp((c(SSpacearr %*% log(thistheta)) + logC)[II]))
-
-    }
 
   }
 
@@ -139,8 +143,8 @@ expand_index <- function(lengths) {
 #' @param alpha A 1 - alpha percent confidence interval will be computed
 #'
 
-xactonomial <- function(psi, data, alpha = .05,
-                        maxit = 500, chunksize = 500) {
+xactonomial <- function(psi, data, alpha = .05, psi_limits,
+                        maxit = 50, chunksize = 500) {
 
   k <- length(data)
   d_k <- sapply(data, length)
@@ -165,7 +169,7 @@ xactonomial <- function(psi, data, alpha = .05,
   }
 
   pvalue_psi0 <- function(psi0, maxit = maxit, chunksize = chunksize,
-                          lower = TRUE, target = alpha / 2,
+                          lower = TRUE, target = alpha / 2, psi_limits = psi_limits,
                           SSpacearr = SSpacearr, logC = logC) {
 
     minus1 <- if(lower) 1 else -1
@@ -174,29 +178,46 @@ xactonomial <- function(psi, data, alpha = .05,
     seqmaxes <- rep(NA, maxit)
     for(i in 1:maxit) {
       theta_cands <- do.call(cbind, lapply(d_k, \(i) get_theta_random(i, chunksize)))
-      these_probs <- calc_prob_null(theta_cands, psi, psi0, minus1, SSpacearr, II, logC)
+      #theta_cands <- smart_sample_theta(psi, psi0 = psi0,
+      #                                  psi_limits = psi_limits, d_k = d_k,
+      #                                  chunksize = chunksize, lower = lower)
+      these_probs <- calc_prob_null(theta_cands, psi, psi0, minus1,
+                                    SSpacearr, logC, II)
       if(length(these_probs) == 0) next
 
-      seqmaxes[i] <- max(c(seqmaxes, these_probs), na.rm = TRUE)
+      cand <- c(seqmaxes, these_probs)
+      if(all(is.na(cand))) seqmaxes[i] <- 1e-12 else {
+        seqmaxes[i] <- max(cand, na.rm = TRUE)
+      }
       if(seqmaxes[i] > target + .001) break
 
     }
-    max(seqmaxes, na.rm = TRUE)
+    if(all(is.na(seqmaxes))) return(1e-12) else max(seqmaxes, na.rm = TRUE)
   }
 
 
-  lower_limit <- uniroot(\(x) pvalue_psi0(x, maxit = maxit, chunksize = chunksize, lower = TRUE, target = alpha/2,
-                                          SSpacearr = SSpacearr, logC = logC) - alpha / 2,
-                         f.lower = -alpha/2, f.upper = 1 - alpha/2,
-                         interval = c(-100, 100), tol = .001)
-  upper_limit <- uniroot(\(x) pvalue_psi0(x, maxit = maxit, chunksize = chunksize, lower = FALSE, target = alpha/2,
-                                          SSpacearr = SSpacearr, logC = logC) - alpha / 2,
-                         f.lower = 1 - alpha/2, f.upper = -alpha/2,
-                         interval = c(-100, 100), tol = .001)
+  flower <- function(x){
+    pvalue_psi0(x, maxit = maxit, chunksize = chunksize,
+          lower = TRUE, target = alpha / 2, psi_limits = psi_limits,
+          SSpacearr = SSpacearr, logC = logC) - alpha / 2
+  }
+
+  fupper <- function(x) {
+    pvalue_psi0(x, maxit = maxit, chunksize = chunksize,
+                lower = FALSE, target = alpha / 2, psi_limits = psi_limits,
+                SSpacearr = SSpacearr, logC = logC) - (alpha / 2)
+  }
+
+
+
+  lower_limit <- itp_root(flower, psi_limits[1], psi_limits[2],
+                          fa = -alpha / 2, fb = 1 - alpha / 2, maxit = 10)
+  upper_limit <- itp_root(fupper, psi_limits[1], psi_limits[2],
+                          fa = 1-alpha / 2, fb = - alpha / 2, maxit = 10)
 
 
   list(estimate = psi_obs,
-    conf.int = c(lower_limit$root, upper_limit$root),
+    conf.int = c(lower_limit, upper_limit),
     pvalue_function = pvalue_psi0)
 
 
@@ -206,4 +227,113 @@ xactonomial <- function(psi, data, alpha = .05,
 
 
 
+smart_sample_theta <- function(psi, psi0, psi_limits, d_k, chunksize = 200, lower = TRUE) {
+
+  psinull <- if(lower) {
+    runif(chunksize, psi_limits[1], psi0)
+  } else {
+    runif(chunksize, psi0, psi_limits[2])
+  }
+
+  f_theta <- \(theta, psi_j) {
+
+    theta <- plogis(theta)
+    start <- 1
+    for(d in d_k) {
+      theta[start:(start + d - 1)] <- theta[start:(start + d - 1)] / sum(theta[start:(start + d - 1)])
+      start <- start + d
+    }
+    (psi(theta) - psi_j)^2
+
+  }
+
+  #randstart <- do.call(cbind, lapply(d_k, \(i) qlogis(get_theta_random(i, chunksize))))
+  randstart <- matrix(rnorm(chunksize * sum(d_k), sd = 2), nrow = chunksize, ncol = sum(d_k))
+  out_thetas <- matrix(NA, nrow = chunksize, ncol = ncol(randstart))
+  for(i in 1:chunksize) {
+    res <- optim(randstart[i,], f_theta, psi_j = psinull[i])
+    theta_i <- res$par
+    theta_i <- plogis(theta_i)
+    start <- 1
+    for(d in d_k) {
+      theta_i[start:(start + d - 1)] <- theta_i[start:(start + d - 1)] / sum(theta_i[start:(start + d - 1)])
+      start <- start + d
+    }
+
+    out_thetas[i, ] <- theta_i
+  }
+
+  #out_thetas
+  chkpsi <- apply(out_thetas, 1, psi)
+  if(lower) out_thetas[chkpsi <= psi0,] else out_thetas[chkpsi >= psi0, ]
+
+}
+
+
+
+itp_root <- function(f, a, b, k1 = .1, k2 = 2, n0 = 1,
+                     eps = .005, maxit = 100, fa = NULL, fb = NULL,
+                     verbose = FALSE) {
+
+  if(is.null(fa) | is.null(fb)) {
+    fa <- f(a)
+    fb <- f(b)
+  }
+  inc <- sign(fb)
+
+  n12 <- log((b - a) / (2 * eps), base = 2)
+  nmax <- n12 + n0
+  j <- 0
+
+  for_rk <- 2 ^ (n0 - 1 + log2(eps) + ceiling(log2(b - a) - log2(eps)))
+
+  repeat {
+    x12 <- (a + b) / 2
+    xf <- (fb * a - fa * b) / (fb - fa)
+
+
+    delta <- k1 * (b - a)^k2
+    sigma <- sign(x12 - xf)
+
+    if(delta <= abs(x12 - xf)) {
+      xt <- xf + sigma * delta
+    } else {
+      xt <- x12
+    }
+
+    r <- for_rk - (b - a) / 2
+
+
+    if(abs(xt - x12) <= r) {
+      xitp <- xt
+    } else {
+      xitp <- x12 - sigma * r
+    }
+
+    yitp <- f(xitp)
+    if(yitp * inc > 0) {
+      b <- xitp
+      fb <- yitp
+    } else if(yitp * inc < 0) {
+      a <- xitp
+      fa <- yitp
+    } else {
+      a <- b <- xitp
+    }
+
+    if(verbose) {
+      cat("iteration: ", j, "candidate: ", xitp, ", closest value: ", yitp, "\n")
+    }
+
+    if((b - a) < 2 * eps | j >= maxit) break
+
+    for_rk <- for_rk * .5
+    j <- j + 1
+
+  }
+
+  (a + b) / 2
+
+
+}
 
