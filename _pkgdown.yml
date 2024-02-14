@@ -1,0 +1,10 @@
+template:
+  bootstrap: 5
+  bootswatch: lux
+  bslib:
+    pkgdown-nav-height: 100px
+
+navbar:
+  structure:
+    left:  [intro, reference, articles, news]
+    right: [search, github]
