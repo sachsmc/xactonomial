@@ -11,8 +11,14 @@ Authors@R:
              family = "Fay", role = c("aut")))
 URL: https://github.com/sachsmc/xactonomial
 BugReports: https://github.com/sachsmc/xactonomial/issues
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Description: We consider the k sample multinomial problem where we observe k vectors
+    (possibly of different lengths), each representing an independent sample from
+    a multinomial. For a given function psi which takes in the concatenated
+    vector of multinomial probabilities and outputs a real number, we are
+    interested in constructing a confidence interval for psi. We use an exact (but 
+    computational and stochastic) method to compute a confidence interval and a 
+    function for calculation of p values. The details of the method will be in a 
+    forthcoming preprint. 
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -20,3 +26,4 @@ Suggests:
     knitr,
     rmarkdown
 VignetteBuilder: knitr
+RoxygenNote: 7.2.3

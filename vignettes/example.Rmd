@@ -5,6 +5,7 @@ vignette: >
   %\VignetteIndexEntry{Basic Examples}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+bibliography: references.bib
 ---
 
 ```{r, include = FALSE}
@@ -19,13 +20,20 @@ library(xactonomial)
 library(parallel)
 ```
 
+Let $T_j$ be distributed $\mbox{Multinomial}_{d_j}(\boldsymbol{\theta}_j, n_j)$ for $j = 1, \ldots, k$ and denote $\boldsymbol{T} = (T_1, \ldots, T_k)$ and $\boldsymbol{\theta} = (\theta_1, \ldots, \theta_k)$. The subscript $d_j$ denotes the dimension of the multinomial. Suppose one is interested in the parameter $\psi(\boldsymbol{\theta}) \in \Theta \subseteq \mathbb{R}$. Given a sample of size $n$ from $\boldsymbol{T}$, one can estimate $\boldsymbol{\theta}$ with the sample proportions as $\hat{\boldsymbol{\theta}}$ and hence $\psi(\hat{\boldsymbol{\theta}})$. It would then be natural to construct a $1 - \alpha$ percent confidence interval for $\psi(\boldsymbol{\theta})$ and calculate a p value for a test of the null hypothesis $H_0: \psi(\boldsymbol{\theta}) \leq \psi_0$. 
 
-```{r, cache = TRUE}
+If the functional $\psi$ is complex, or the variance of $\psi(\hat{\boldsymbol{\theta}})$ is otherwise difficult to calculate, then one may consider using the nonparametric bootstrap for inference [@efron1979bootstrap]. However, the bootstrap may perform poorly in small samples, e.g., not having the correct coverage or type I error [@bickel1981some]. Instead we propose a computational approach for computing p values and confidence intervals in this setting. 
 
-n = c(8, 10)
+Here is a simple illustration of the problem. Let 
+\[
+\psi(\theta_1, \theta_2) = \sum \sqrt(\theta_1, \theta_2), 
+\]
+which is similar to the Bhattacharyya coefficient [@sankhya1946measure]. Suppose we have two samples $T_1$ and $T_2$ each from independent multinomials with dimension 4. The following R code allows us to sample the data and compute $\psi$. 
+
+```{r}
 true_theta <- c(.45, .15, .3, .1, .05, .15, .4, .4)
 
-sample_data <- function() {
+sample_data <- function(n) {
   
   T1 <- rmultinom(1, n[1], prob = true_theta[1:4])
   T2 <- rmultinom(1, n[2], prob = true_theta[5:8])
@@ -43,13 +51,18 @@ psi <- function(theta) {
 }
 
 true_psi <- psi(true_theta)
+```
 
-## how bad is the bootstrap?
 
-run_one_bs <- function(i) {
-  data <- sample_data()
+
+How bad is the bootstrap in this situation with different sample sizes? 
+
+
+```{r, cache = TRUE}
+run_one_bs <- function(i, n) {
+  data <- sample_data(n)
   
-  bsamps <- replicate(2000, {
+  bsamps <- replicate(500, {
     unlist(lapply(data, \(x) {
       #newx <- c(rmultinom(1, sum(x), prob = x / sum(x)))
       newx <- table(factor(sample(rep.int(1:length(x), times = x), sum(x), replace = TRUE), 
@@ -59,24 +72,43 @@ run_one_bs <- function(i) {
     })) |> psi()
   })
   
-  cib <- quantile(bsamps, c(.05, .95))
+  cib <- quantile(bsamps, c(.025, .975))
   true_psi >= cib[1] & true_psi <= cib[2]
     
 }
 
-cover_boot <- mclapply(1:200, run_one_bs, mc.cores = 100)
-mean(unlist(cover_boot))
+cand_ns <- do.call(rbind, lapply(seq(10, 50, by = 5), \(i) c(i, i)))
+emp_coverage <- rep(NA, nrow(cand_ns))
+
+for(i in 1:nrow(cand_ns)) {
+  cover_boot <- mclapply(1:200, run_one_bs, n = cand_ns[i, ], mc.cores = detectCores() - 4)
+  emp_coverage[i] <- mean(unlist(cover_boot))
+}
+
+knitr::kable(cbind("n in each group" = cand_ns[,1], "bootstrap 95% interval coverage" = emp_coverage))
 ```
 
+That does not look too good. Let us see how our method performs. 
 
-```{r}
+
+```{r, cache = TRUE}
 
 xmres <- mclapply(1:200, \(i) {
-  
-    data <- sample_data()
-    results <- xactonomial(psi, data, alpha = .1, psi_limits = c(0,1))
-  
-  results$conf.int
-}, mc.cores = 100)
+ system.time({
+   data <- sample_data(n = c(10, 10))
+   results <- xactonomial(psi, data, alpha = .05, psi_limits = c(0,1))
+ })
+ results$conf.int
+}, mc.cores = detectCores() - 2)
 
+coverage_exact <- sapply(xmres, \(cint) {
+  true_psi >= cint[1] & true_psi <= cint[2]
+})
+
+mean(coverage_exact)
 ```
+
+
+Much better!
+
+## References
