@@ -64,8 +64,8 @@ run_one_bs <- function(i) {
     
 }
 
-cover_boot <- sapply(1:200, run_one_bs)
-mean(cover_boot)
+cover_boot <- mclapply(1:200, run_one_bs, mc.cores = 100)
+mean(unlist(cover_boot))
 ```
 
 
@@ -79,9 +79,4 @@ xmres <- mclapply(1:200, \(i) {
   results$conf.int
 }, mc.cores = 100)
 
-
-
-
 ```
-
-
