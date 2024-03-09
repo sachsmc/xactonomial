@@ -42,7 +42,7 @@ sample_data <- function(n) {
   
 }
 
-psi <- function(theta) {
+psi_bc <- function(theta) {
   
   theta1 <- theta[1:4]
   theta2 <- theta[5:8]
@@ -50,7 +50,7 @@ psi <- function(theta) {
   
 }
 
-true_psi <- psi(true_theta)
+true_psi_bc <- psi_bc(true_theta)
 ```
 
 
@@ -59,7 +59,7 @@ How bad is the bootstrap in this situation with different sample sizes?
 
 
 ```{r, cache = TRUE}
-run_one_bs <- function(i, n) {
+run_one_bs <- function(i, n, psi, true_psi) {
   data <- sample_data(n)
   
   bsamps <- replicate(500, {
@@ -81,7 +81,8 @@ cand_ns <- do.call(rbind, lapply(seq(10, 50, by = 5), \(i) c(i, i)))
 emp_coverage <- rep(NA, nrow(cand_ns))
 
 for(i in 1:nrow(cand_ns)) {
-  cover_boot <- mclapply(1:200, run_one_bs, n = cand_ns[i, ], mc.cores = detectCores() - 4)
+  cover_boot <- mclapply(1:2000, run_one_bs, n = cand_ns[i, ], psi = psi_bc, 
+                         true_psi = true_psi_bc, mc.cores = detectCores() - 4)
   emp_coverage[i] <- mean(unlist(cover_boot))
 }
 
@@ -93,10 +94,10 @@ That does not look too good. Let us see how our method performs.
 
 ```{r, cache = TRUE}
 
-xmres <- mclapply(1:200, \(i) {
+xmres <- mclapply(1:2000, \(i) {
  system.time({
    data <- sample_data(n = c(10, 10))
-   results <- xactonomial(psi, data, alpha = .05, psi_limits = c(0,1))
+   results <- xactonomial(psi_bc, data, alpha = .05, psi_limits = c(0,1))
  })
  results$conf.int
 }, mc.cores = detectCores() - 2)
@@ -110,5 +111,55 @@ mean(coverage_exact)
 
 
 Much better!
+
+## Causal bounds
+
+```{r}
+psi_causal <- function(pp) {
+  
+  p00_0 <- pp[1]
+  p10_0 <- pp[2]
+  p01_0 <- pp[3]
+  p11_0 <- pp[4]
+  p00_1 <- pp[5]
+  p10_1 <- pp[6]
+  p01_1 <- pp[7]
+  p11_1 <- pp[8]
+  
+  
+  max(p00_0 - p00_1 - p10_1 - p01_1, p00_0 - p00_1 - p10_0 - p10_1 - p01_0, 
+       p00_0 - p00_1 + p10_0 - 2 * p10_1 - 2 * p01_1, 
+       -p10_1 - p01_1, 
+       -p10_0 - p01_0, 
+       -p00_0 + p00_1 - 2 * p10_0 + p10_1 - 2 * p01_0, 
+       -p00_0 + p00_1 - p10_0 - 
+        p10_1 - p01_1, 
+       -p00_0 + p00_1 - p10_0 - p01_0)
+  
+}
+
+true_psi_causal <- psi_causal(c(.45, .15, .3, .1, .05, .15, .4, .4))
+
+
+cover_boot <- mclapply(1:2000, run_one_bs, n = c(10,10), psi = psi_causal, 
+                         true_psi = true_psi_causal, mc.cores = detectCores() - 4)
+mean(unlist(cover_boot))
+
+xmres <- mclapply(1:2000, \(i) {
+ system.time({
+   data <- sample_data(n = c(10, 10))
+   results <- xactonomial(psi_causal, data, alpha = .05, psi_limits = c(-1,1))
+ })
+ results$conf.int
+}, mc.cores = detectCores() - 2)
+
+coverage_exact <- sapply(xmres, \(cint) {
+  true_psi_causal >= cint[1] & true_psi_causal <= cint[2]
+})
+
+mean(coverage_exact)
+
+```
+
 
 ## References
