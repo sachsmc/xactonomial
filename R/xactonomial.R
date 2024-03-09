@@ -81,11 +81,9 @@ xactonomial <- function(psi, data, alpha = .05, psi_limits,
     seqmaxes <- rep(NA, maxit)
     for(i in 1:maxit) {
       theta_cands <- do.call(cbind, lapply(d_k, \(i) get_theta_random(i, chunksize)))
-      #theta_cands <- smart_sample_theta(psi, psi0 = psi0,
-      #                                  psi_limits = psi_limits, d_k = d_k,
-      #                                  chunksize = chunksize, lower = lower)
-      these_probs <- calc_prob_null(theta_cands, psi, psi0, minus1,
+      these_probs <- calc_prob_null2(theta_cands, psi, psi0, minus1,
                                     SSpacearr, logC, II)
+
       if(length(these_probs) == 0) next
 
       cand <- c(seqmaxes, these_probs)

@@ -90,12 +90,13 @@ log_multinom_coef<- function(x,sumx){
 
 get_theta_random <- function(d = 4, nsamp = 75) {
 
-  x1 <- matrix(runif(nsamp * (d - 1)), ncol = d - 1)
-  g2 <- unique(t(apply(x1, 1, \(x) {
-    diff(sort(c(0, x, 1)))
-  })))
+  # x1 <- matrix(runif(nsamp * (d - 1)), ncol = d - 1)
+  # g2 <- unique(t(apply(x1, 1, \(x) {
+  #   diff(sort(c(0, x, 1)))
+  # })))
 
-  g2
+  t(sapply(seq_len(nsamp), \(n) sample_unit_simplex(d)))
+
 
 
 }
