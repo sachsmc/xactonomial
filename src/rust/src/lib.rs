@@ -24,6 +24,22 @@ fn sample_unit_simplex(d: u32) -> Vec<f64> {
 
 }
 
+
+/// Return n random samples from the d unit simplex
+/// @export
+#[extendr]
+fn sample_unit_simplexn(d: u32, n: u32) -> Vec<f64> {
+
+  let mut valsret: Vec<f64> = Vec::with_capacity((d * n) as usize);
+
+  for ii in 0..n {
+    let _i = ii as usize;
+    valsret.append(&mut sample_unit_simplex(d));
+  }
+  valsret
+
+}
+
 /// calculate multinomial probabilities
 /// @export
 #[extendr]
@@ -36,7 +52,7 @@ fn calc_probs_rust(sar: Vec<f64>, logt: Vec<f64>, logc: Vec<f64>, d: u32, n: u32
   let sar_ni: Vec<usize> = (0..nu).map(|i| du * i).collect();
   let the_ni: Vec<usize> = (0..ntu).map(|i| du * i).collect();
 
-  let mut res: Vec<f64> = Vec::new();
+  let mut res: Vec<f64> = Vec::with_capacity(nt as usize);
   let mut restmp: f64 = 0.0;
   let mut i: usize = 0;
 
@@ -63,5 +79,6 @@ fn calc_probs_rust(sar: Vec<f64>, logt: Vec<f64>, logc: Vec<f64>, d: u32, n: u32
 extendr_module! {
     mod xactonomial;
     fn sample_unit_simplex;
+    fn sample_unit_simplexn;
     fn calc_probs_rust;
 }

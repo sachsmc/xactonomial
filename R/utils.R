@@ -95,9 +95,7 @@ get_theta_random <- function(d = 4, nsamp = 75) {
   #   diff(sort(c(0, x, 1)))
   # })))
 
-  t(sapply(seq_len(nsamp), \(n) sample_unit_simplex(d)))
-
-
+  matrix(sample_unit_simplexn(d, nsamp), nrow = nsamp, ncol = d, byrow = TRUE)
 
 }
 

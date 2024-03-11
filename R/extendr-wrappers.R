@@ -15,6 +15,10 @@ NULL
 #' @export
 sample_unit_simplex <- function(d) .Call(wrap__sample_unit_simplex, d)
 
+#' Return n random samples from the d unit simplex
+#' @export
+sample_unit_simplexn <- function(d, n) .Call(wrap__sample_unit_simplexn, d, n)
+
 #' calculate multinomial probabilities
 #' @export
 calc_probs_rust <- function(sar, logt, logc, d, n, nt) .Call(wrap__calc_probs_rust, sar, logt, logc, d, n, nt)
