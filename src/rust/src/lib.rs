@@ -1,7 +1,7 @@
 use extendr_api::prelude::*;
 use rand::{Rng, thread_rng};
 use rand::distributions::Uniform;
-
+//use itertools::Itertools;
 
 /// Return a random sample from the d unit simplex
 /// @export
@@ -73,6 +73,8 @@ fn calc_probs_rust(sar: Vec<f64>, logt: Vec<f64>, logc: Vec<f64>, d: u32, n: u32
 }
 
 
+
+
 // Macro to generate exports.
 // This ensures exported functions are registered with R.
 // See corresponding C code in `entrypoint.c`.
@@ -81,4 +83,5 @@ extendr_module! {
     fn sample_unit_simplex;
     fn sample_unit_simplexn;
     fn calc_probs_rust;
+   // fn rust_sspace;
 }

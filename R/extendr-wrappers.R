@@ -23,5 +23,9 @@ sample_unit_simplexn <- function(d, n) .Call(wrap__sample_unit_simplexn, d, n)
 #' @export
 calc_probs_rust <- function(sar, logt, logc, d, n, nt) .Call(wrap__calc_probs_rust, sar, logt, logc, d, n, nt)
 
+#' calculate sample space of a multinomial with dimension d and sample size n
+#' @export
+rust_sspace <- function(d, n) .Call(wrap__rust_sspace, d, n)
+
 
 # nolint end

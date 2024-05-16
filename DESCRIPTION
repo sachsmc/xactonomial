@@ -1,7 +1,7 @@
 Package: xactonomial
 Type: Package
 Title: Exact Inference for Real-Valued Functionals of k-Sample Multinomial Parameters
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: 
     c(person(given = "Michael C",
              family = "Sachs",
@@ -27,4 +27,4 @@ Suggests:
     rmarkdown
 VignetteBuilder: knitr
 RoxygenNote: 7.2.3
-Config/rextendr/version: 0.3.1
+Config/rextendr/version: 0.3.1.9000

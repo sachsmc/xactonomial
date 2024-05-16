@@ -51,11 +51,13 @@ xactonomial <- function(psi, data, alpha = .05, psi_limits,
 
   k <- length(data)
   d_k <- sapply(data, length)
+  psi_obs <- do.call(psi, lapply(data, \(x) x / sum(x)) |> unlist() |> list())
+
+
   SSpace <- lapply(data, \(x) sspace_multinom(length(x), sum(x)))
 
   bigdex <- expand_index(sapply(SSpace, nrow))
   psi_hat <- logC <- rep(NA, nrow(bigdex))
-  psi_obs <- do.call(psi, lapply(data, \(x) x / sum(x)) |> unlist() |> list())
 
   SSpacearr <- array(dim = c(nrow(bigdex), sum(d_k)))
 
@@ -70,6 +72,9 @@ xactonomial <- function(psi, data, alpha = .05, psi_limits,
     logC[i] <- sum(sapply(thisS, \(x) log_multinom_coef(x, sum(x))))
 
   }
+
+
+
 
   pvalue_psi0 <- function(psi0, maxit = maxit, chunksize = chunksize,
                           lower = TRUE, target = alpha / 2, psi_limits = psi_limits,
