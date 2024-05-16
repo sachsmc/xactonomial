@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">xactonomial</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -121,7 +121,7 @@ compute <span class="math inline">\(\psi\)</span>.</p>
 <span>  </span>
 <span><span class="op">}</span></span>
 <span></span>
-<span><span class="va">psi</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">theta</span><span class="op">)</span> <span class="op">{</span></span>
+<span><span class="va">psi_bc</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">theta</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  </span>
 <span>  <span class="va">theta1</span> <span class="op">&lt;-</span> <span class="va">theta</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span></span>
 <span>  <span class="va">theta2</span> <span class="op">&lt;-</span> <span class="va">theta</span><span class="op">[</span><span class="fl">5</span><span class="op">:</span><span class="fl">8</span><span class="op">]</span></span>
@@ -129,11 +129,11 @@ compute <span class="math inline">\(\psi\)</span>.</p>
 <span>  </span>
 <span><span class="op">}</span></span>
 <span></span>
-<span><span class="va">true_psi</span> <span class="op">&lt;-</span> <span class="fu">psi</span><span class="op">(</span><span class="va">true_theta</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">true_psi_bc</span> <span class="op">&lt;-</span> <span class="fu">psi_bc</span><span class="op">(</span><span class="va">true_theta</span><span class="op">)</span></span></code></pre></div>
 <p>How bad is the bootstrap in this situation with different sample
 sizes?</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">run_one_bs</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">i</span>, <span class="va">n</span><span class="op">)</span> <span class="op">{</span></span>
+<code class="sourceCode R"><span><span class="va">run_one_bs</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">i</span>, <span class="va">n</span>, <span class="va">psi</span>, <span class="va">true_psi</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">data</span> <span class="op">&lt;-</span> <span class="fu">sample_data</span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
 <span>  </span>
 <span>  <span class="va">bsamps</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">replicate</a></span><span class="op">(</span><span class="fl">500</span>, <span class="op">{</span></span>
@@ -155,7 +155,8 @@ sizes?</p>
 <span><span class="va">emp_coverage</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">cand_ns</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">cand_ns</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">cover_boot</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/parallel/mclapply.html" class="external-link">mclapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">200</span>, <span class="va">run_one_bs</span>, n <span class="op">=</span> <span class="va">cand_ns</span><span class="op">[</span><span class="va">i</span>, <span class="op">]</span>, mc.cores <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fl">4</span><span class="op">)</span></span>
+<span>  <span class="va">cover_boot</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/parallel/mclapply.html" class="external-link">mclapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">1000</span>, <span class="va">run_one_bs</span>, n <span class="op">=</span> <span class="va">cand_ns</span><span class="op">[</span><span class="va">i</span>, <span class="op">]</span>, psi <span class="op">=</span> <span class="va">psi_bc</span>, </span>
+<span>                         true_psi <span class="op">=</span> <span class="va">true_psi_bc</span>, mc.cores <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fl">4</span><span class="op">)</span></span>
 <span>  <span class="va">emp_coverage</span><span class="op">[</span><span class="va">i</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="va">cover_boot</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
@@ -168,64 +169,114 @@ sizes?</p>
 <tbody>
 <tr class="odd">
 <td align="right">10</td>
-<td align="right">0.570</td>
+<td align="right">0.550</td>
 </tr>
 <tr class="even">
 <td align="right">15</td>
-<td align="right">0.600</td>
+<td align="right">0.625</td>
 </tr>
 <tr class="odd">
 <td align="right">20</td>
-<td align="right">0.645</td>
+<td align="right">0.664</td>
 </tr>
 <tr class="even">
 <td align="right">25</td>
-<td align="right">0.805</td>
+<td align="right">0.724</td>
 </tr>
 <tr class="odd">
 <td align="right">30</td>
-<td align="right">0.800</td>
+<td align="right">0.777</td>
 </tr>
 <tr class="even">
 <td align="right">35</td>
-<td align="right">0.840</td>
+<td align="right">0.809</td>
 </tr>
 <tr class="odd">
 <td align="right">40</td>
-<td align="right">0.825</td>
+<td align="right">0.815</td>
 </tr>
 <tr class="even">
 <td align="right">45</td>
-<td align="right">0.885</td>
+<td align="right">0.855</td>
 </tr>
 <tr class="odd">
 <td align="right">50</td>
-<td align="right">0.880</td>
+<td align="right">0.881</td>
 </tr>
 </tbody>
 </table>
 <p>That does not look too good. Let us see how our method performs.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="va">xmres</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/parallel/mclapply.html" class="external-link">mclapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">200</span>, \<span class="op">(</span><span class="va">i</span><span class="op">)</span> <span class="op">{</span></span>
+<span><span class="va">xmres</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/parallel/mclapply.html" class="external-link">mclapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">1000</span>, \<span class="op">(</span><span class="va">i</span><span class="op">)</span> <span class="op">{</span></span>
 <span> <span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="op">{</span></span>
 <span>   <span class="va">data</span> <span class="op">&lt;-</span> <span class="fu">sample_data</span><span class="op">(</span>n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
-<span>   <span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/xactonomial.html">xactonomial</a></span><span class="op">(</span><span class="va">psi</span>, <span class="va">data</span>, alpha <span class="op">=</span> <span class="fl">.05</span>, psi_limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span>   <span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/xactonomial.html">xactonomial</a></span><span class="op">(</span><span class="va">psi_bc</span>, <span class="va">data</span>, alpha <span class="op">=</span> <span class="fl">.05</span>, psi_limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span> <span class="op">}</span><span class="op">)</span></span>
 <span> <span class="va">results</span><span class="op">$</span><span class="va">conf.int</span></span>
 <span><span class="op">}</span>, mc.cores <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fl">2</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">coverage_exact</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="va">xmres</span>, \<span class="op">(</span><span class="va">cint</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">true_psi</span> <span class="op">&gt;=</span> <span class="va">cint</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="op">&amp;</span> <span class="va">true_psi</span> <span class="op">&lt;=</span> <span class="va">cint</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span></span>
+<span>  <span class="va">true_psi_bc</span> <span class="op">&gt;=</span> <span class="va">cint</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="op">&amp;</span> <span class="va">true_psi_bc</span> <span class="op">&lt;=</span> <span class="va">cint</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">coverage_exact</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.975</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.985</span></span></code></pre></div>
 <p>Much better!</p>
+<div class="section level2">
+<h2 id="causal-bounds">Causal bounds<a class="anchor" aria-label="anchor" href="#causal-bounds"></a>
+</h2>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">psi_causal</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">pp</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  </span>
+<span>  <span class="va">p00_0</span> <span class="op">&lt;-</span> <span class="va">pp</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span></span>
+<span>  <span class="va">p10_0</span> <span class="op">&lt;-</span> <span class="va">pp</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span></span>
+<span>  <span class="va">p01_0</span> <span class="op">&lt;-</span> <span class="va">pp</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span></span>
+<span>  <span class="va">p11_0</span> <span class="op">&lt;-</span> <span class="va">pp</span><span class="op">[</span><span class="fl">4</span><span class="op">]</span></span>
+<span>  <span class="va">p00_1</span> <span class="op">&lt;-</span> <span class="va">pp</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span></span>
+<span>  <span class="va">p10_1</span> <span class="op">&lt;-</span> <span class="va">pp</span><span class="op">[</span><span class="fl">6</span><span class="op">]</span></span>
+<span>  <span class="va">p01_1</span> <span class="op">&lt;-</span> <span class="va">pp</span><span class="op">[</span><span class="fl">7</span><span class="op">]</span></span>
+<span>  <span class="va">p11_1</span> <span class="op">&lt;-</span> <span class="va">pp</span><span class="op">[</span><span class="fl">8</span><span class="op">]</span></span>
+<span>  </span>
+<span>  </span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">p00_0</span> <span class="op">-</span> <span class="va">p00_1</span> <span class="op">-</span> <span class="va">p10_1</span> <span class="op">-</span> <span class="va">p01_1</span>, <span class="va">p00_0</span> <span class="op">-</span> <span class="va">p00_1</span> <span class="op">-</span> <span class="va">p10_0</span> <span class="op">-</span> <span class="va">p10_1</span> <span class="op">-</span> <span class="va">p01_0</span>, </span>
+<span>       <span class="va">p00_0</span> <span class="op">-</span> <span class="va">p00_1</span> <span class="op">+</span> <span class="va">p10_0</span> <span class="op">-</span> <span class="fl">2</span> <span class="op">*</span> <span class="va">p10_1</span> <span class="op">-</span> <span class="fl">2</span> <span class="op">*</span> <span class="va">p01_1</span>, </span>
+<span>       <span class="op">-</span><span class="va">p10_1</span> <span class="op">-</span> <span class="va">p01_1</span>, </span>
+<span>       <span class="op">-</span><span class="va">p10_0</span> <span class="op">-</span> <span class="va">p01_0</span>, </span>
+<span>       <span class="op">-</span><span class="va">p00_0</span> <span class="op">+</span> <span class="va">p00_1</span> <span class="op">-</span> <span class="fl">2</span> <span class="op">*</span> <span class="va">p10_0</span> <span class="op">+</span> <span class="va">p10_1</span> <span class="op">-</span> <span class="fl">2</span> <span class="op">*</span> <span class="va">p01_0</span>, </span>
+<span>       <span class="op">-</span><span class="va">p00_0</span> <span class="op">+</span> <span class="va">p00_1</span> <span class="op">-</span> <span class="va">p10_0</span> <span class="op">-</span> </span>
+<span>        <span class="va">p10_1</span> <span class="op">-</span> <span class="va">p01_1</span>, </span>
+<span>       <span class="op">-</span><span class="va">p00_0</span> <span class="op">+</span> <span class="va">p00_1</span> <span class="op">-</span> <span class="va">p10_0</span> <span class="op">-</span> <span class="va">p01_0</span><span class="op">)</span></span>
+<span>  </span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="va">true_psi_causal</span> <span class="op">&lt;-</span> <span class="fu">psi_causal</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.45</span>, <span class="fl">.15</span>, <span class="fl">.3</span>, <span class="fl">.1</span>, <span class="fl">.05</span>, <span class="fl">.15</span>, <span class="fl">.4</span>, <span class="fl">.4</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="va">cover_boot</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/parallel/mclapply.html" class="external-link">mclapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">1000</span>, <span class="va">run_one_bs</span>, n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>,<span class="fl">10</span><span class="op">)</span>, psi <span class="op">=</span> <span class="va">psi_causal</span>, </span>
+<span>                         true_psi <span class="op">=</span> <span class="va">true_psi_causal</span>, mc.cores <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fl">4</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="va">cover_boot</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 0.918</span></span>
+<span></span>
+<span><span class="va">xmres</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/parallel/mclapply.html" class="external-link">mclapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">20</span>, \<span class="op">(</span><span class="va">i</span><span class="op">)</span> <span class="op">{</span></span>
+<span> <span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="op">{</span></span>
+<span>   <span class="va">data</span> <span class="op">&lt;-</span> <span class="fu">sample_data</span><span class="op">(</span>n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
+<span>   <span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/xactonomial.html">xactonomial</a></span><span class="op">(</span><span class="va">psi_causal</span>, <span class="va">data</span>, alpha <span class="op">=</span> <span class="fl">.05</span>, psi_limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span> <span class="op">}</span><span class="op">)</span></span>
+<span> <span class="va">results</span><span class="op">$</span><span class="va">conf.int</span></span>
+<span><span class="op">}</span>, mc.cores <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fl">2</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">coverage_exact</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="va">xmres</span>, \<span class="op">(</span><span class="va">cint</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">true_psi_causal</span> <span class="op">&gt;=</span> <span class="va">cint</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="op">&amp;</span> <span class="va">true_psi_causal</span> <span class="op">&lt;=</span> <span class="va">cint</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span></span>
+<span><span class="op">}</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">coverage_exact</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 1</span></span></code></pre></div>
+</div>
 <div class="section level2 unnumbered">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
-<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
 <div id="ref-sankhya1946measure" class="csl-entry">
 Bhattacharyya, A. 1946. <span>“On a Measure of Divergence Between Two
 Multinomial Populations.”</span> <em>Sankhyā: The Indian Journal of
@@ -242,7 +293,8 @@ Jackknife.”</span> <em>The Annals of Statistics</em> 7 (1): 1–26.
 </div>
 </div>
 </div>
-  </main>
+  </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
+    </nav></aside>
 </div>
 
 

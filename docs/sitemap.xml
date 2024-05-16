@@ -28,6 +28,12 @@
     <loc>/reference/calc_prob_null.html</loc>
   </url>
   <url>
+    <loc>/reference/calc_prob_null2.html</loc>
+  </url>
+  <url>
+    <loc>/reference/calc_probs_rust.html</loc>
+  </url>
+  <url>
     <loc>/reference/expand_index.html</loc>
   </url>
   <url>
@@ -41,6 +47,18 @@
   </url>
   <url>
     <loc>/reference/log_multinom_coef.html</loc>
+  </url>
+  <url>
+    <loc>/reference/pvalue_psi0.html</loc>
+  </url>
+  <url>
+    <loc>/reference/rust_sspace.html</loc>
+  </url>
+  <url>
+    <loc>/reference/sample_unit_simplex.html</loc>
+  </url>
+  <url>
+    <loc>/reference/sample_unit_simplexn.html</loc>
   </url>
   <url>
     <loc>/reference/sspace_multinom.html</loc>

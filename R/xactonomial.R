@@ -36,7 +36,7 @@
 #' @param conf.int Logical. If FALSE, no confidence interval is calculed, only the p-value.
 #'
 #' @returns A list with 3 elements: the estimate, the 1 - alpha percent
-#'   confidence interval, and a function for calculation of p-values
+#'   confidence interval, and p-value
 #' @export
 #' @examples
 #' psi_ba <- function(theta) {
