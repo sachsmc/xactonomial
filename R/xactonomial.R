@@ -26,12 +26,14 @@
 #'   valued number
 #' @param data A list with k elements representing the vectors of counts of a
 #'   k-sample multinomial
+#' @param psi0 The null hypothesis value. A p value for a test of psi <= psi0 is computed. If NULL only a confidence interval is computed.
 #' @param alpha A 1 - alpha percent confidence interval will be computed
 #' @param psi_limits A vector of length 2 giving the lower and upper limits of
 #'   the range of \eqn{\psi(\theta)}
 #' @param maxit Maximum number of iterations of the stochastic procedure
 #' @param chunksize The number of samples taken from the parameter space at each
 #'   iteration
+#' @param conf.int Logical. If FALSE, no confidence interval is calculed, only the p-value.
 #'
 #' @returns A list with 3 elements: the estimate, the 1 - alpha percent
 #'   confidence interval, and a function for calculation of p-values
@@ -46,8 +48,8 @@
 #' xactonomial(psi_ba, data, psi_limits = c(0, 1), maxit = 5, chunksize = 20)
 #'
 
-xactonomial <- function(psi, data, alpha = .05, psi_limits,
-                        maxit = 50, chunksize = 500) {
+xactonomial <- function(psi, data, psi0 = NULL, alpha = .05, psi_limits,
+                        maxit = 50, chunksize = 500, conf.int = TRUE) {
 
   k <- length(data)
   d_k <- sapply(data, length)
@@ -73,66 +75,93 @@ xactonomial <- function(psi, data, alpha = .05, psi_limits,
 
   }
 
+  pvalue <- if(!is.null(psi0)) {
+    pvalue_psi0(psi0 = psi0, psi = psi, psi_hat = psi_hat,
+                           psi_obs = psi_obs, maxit = maxit, chunksize = chunksize,
+                           lower = TRUE, target = alpha / 2,
+                           SSpacearr = SSpacearr, logC = logC, d_k = d_k)
+  } else NA
 
 
-
-  pvalue_psi0 <- function(psi0, maxit = maxit, chunksize = chunksize,
-                          lower = TRUE, target = alpha / 2, psi_limits = psi_limits,
-                          SSpacearr = SSpacearr, logC = logC) {
-
-    minus1 <- if(lower) 1 else -1
-    II <- if(lower) psi_hat >= psi_obs else psi_hat <= psi_obs
-
-    seqmaxes <- rep(NA, maxit)
-    for(i in 1:maxit) {
-      theta_cands <- do.call("cbind", lapply(d_k, \(i) get_theta_random(i, chunksize)))
-
-      these_probs <- calc_prob_null2(theta_cands, psi, psi0, minus1,
-                                    SSpacearr, logC, II)
-
-      if(length(these_probs) == 0) next
-
-      cand <- c(seqmaxes, these_probs)
-      if(all(is.na(cand))) seqmaxes[i] <- 1e-12 else {
-        seqmaxes[i] <- max(cand, na.rm = TRUE)
-      }
-      if(seqmaxes[i] > target + .001) break
-
-    }
-    if(all(is.na(seqmaxes))) return(1e-12) else max(seqmaxes, na.rm = TRUE)
+  confint <- if(conf.int) {
+  flower <- function(x, psi, psi_hat, psi_obs, maxit, chunksize, target, SSpacearr, logC, d_k){
+    pvalue_psi0(psi0 = x, psi = psi, psi_hat = psi_hat, psi_obs = psi_obs, maxit = maxit, chunksize = chunksize,
+                lower = TRUE, target = alpha / 2,
+                SSpacearr = SSpacearr, logC = logC, d_k = d_k) - alpha / 2
   }
 
-
-  flower <- function(x, maxit, chunksize, target, psi_limits, SSpacearr, logC){
-    pvalue_psi0(x, maxit = maxit, chunksize = chunksize,
-                lower = TRUE, target = alpha / 2, psi_limits = psi_limits,
-                SSpacearr = SSpacearr, logC = logC) - alpha / 2
-  }
-
-  fupper <- function(x, maxit, chunksize, target, psi_limits, SSpacearr, logC) {
-    pvalue_psi0(x, maxit = maxit, chunksize = chunksize,
-                lower = FALSE, target = alpha / 2, psi_limits = psi_limits,
-                SSpacearr = SSpacearr, logC = logC) - (alpha / 2)
+  fupper <- function(x, psi, psi_hat, psi_obs, maxit, chunksize, target, SSpacearr, logC, d_k) {
+    pvalue_psi0(psi0 = x, psi = psi, psi_hat = psi_hat, psi_obs = psi_obs, maxit = maxit, chunksize = chunksize,
+                lower = FALSE, target = alpha / 2,
+                SSpacearr = SSpacearr, logC = logC, d_k = d_k) - (alpha / 2)
   }
 
 
 
   lower_limit <- itp_root(flower, psi_limits[1], psi_limits[2],
                           fa = -alpha / 2, fb = 1 - alpha / 2, maxiter = 10,
+                          psi = psi, psi_hat = psi_hat, psi_obs = psi_obs,
                           maxit = maxit, chunksize = chunksize,
-                          target = alpha / 2, psi_limits = psi_limits,
-                          SSpacearr = SSpacearr, logC = logC)
+                          target = alpha / 2,
+                          SSpacearr = SSpacearr, logC = logC, d_k = d_k)
   upper_limit <- itp_root(fupper, psi_limits[1], psi_limits[2],
                           fa = 1-alpha / 2, fb = - alpha / 2, maxiter = 10,
+                          psi = psi, psi_hat = psi_hat, psi_obs = psi_obs,
                           maxit = maxit, chunksize = chunksize,
-                          target = alpha / 2, psi_limits = psi_limits,
-                          SSpacearr = SSpacearr, logC = logC)
+                          target = alpha / 2,
+                          SSpacearr = SSpacearr, logC = logC, d_k = d_k)
 
+  c(lower_limit, upper_limit)
+  } else c(NA, NA)
 
   list(estimate = psi_obs,
-       conf.int = c(lower_limit, upper_limit),
-       pvalue_function = pvalue_psi0)
+       conf.int = confint,
+       p.value = pvalue
+       )
 
 
 
+}
+
+
+#' Compute a p value for the test of psi <= psi0
+#'
+#' @param psi0 The null value
+#' @param psi The function of interest
+#' @param psi_hat The vector of psi values at each element of the sample space
+#' @param psi_obs The observed estimate
+#' @param maxit Maximum iterations
+#' @param chunksize Chunk size
+#' @param lower Do a one sided test of the null that it is less than psi0, otherwise greater.
+#' @param target Stop the algorithm if p >= target (for speed)
+#' @param SSpacearr The sample space array
+#' @param logC The log multinomial coefficient
+#' @param d_k The vector of dimensions
+#' @returns A p-value
+#'
+
+pvalue_psi0 <- function(psi0, psi, psi_hat, psi_obs, maxit, chunksize,
+                        lower = TRUE, target,
+                        SSpacearr, logC, d_k) {
+
+  minus1 <- if(lower) 1 else -1
+  II <- if(lower) psi_hat >= psi_obs else psi_hat <= psi_obs
+
+  seqmaxes <- rep(NA, maxit)
+  for(i in 1:maxit) {
+    theta_cands <- do.call("cbind", lapply(d_k, \(i) get_theta_random(i, chunksize)))
+
+    these_probs <- calc_prob_null2(theta_cands, psi, psi0, minus1,
+                                   SSpacearr, logC, II)
+
+    if(length(these_probs) == 0) next
+
+    cand <- c(seqmaxes, these_probs)
+    if(all(is.na(cand))) seqmaxes[i] <- 1e-12 else {
+      seqmaxes[i] <- max(cand, na.rm = TRUE)
+    }
+    if(seqmaxes[i] > target + .001) break
+
+  }
+  if(all(is.na(seqmaxes))) return(1e-12) else max(seqmaxes, na.rm = TRUE)
 }

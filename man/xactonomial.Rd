@@ -4,7 +4,16 @@
 \alias{xactonomial}
 \title{Exact inference for a real-valued function of multinomial parameters}
 \usage{
-xactonomial(psi, data, alpha = 0.05, psi_limits, maxit = 50, chunksize = 500)
+xactonomial(
+  psi,
+  data,
+  psi0 = NULL,
+  alpha = 0.05,
+  psi_limits,
+  maxit = 50,
+  chunksize = 500,
+  conf.int = TRUE
+)
 }
 \arguments{
 \item{psi}{Function that takes in a vector of parameters and outputs a real
@@ -12,6 +21,8 @@ valued number}
 
 \item{data}{A list with k elements representing the vectors of counts of a
 k-sample multinomial}
+
+\item{psi0}{The null hypothesis value. A p value for a test of psi <= psi0 is computed. If NULL only a confidence interval is computed.}
 
 \item{alpha}{A 1 - alpha percent confidence interval will be computed}
 
@@ -22,6 +33,8 @@ the range of \eqn{\psi(\theta)}}
 
 \item{chunksize}{The number of samples taken from the parameter space at each
 iteration}
+
+\item{conf.int}{Logical. If FALSE, no confidence interval is calculed, only the p-value.}
 }
 \value{
 A list with 3 elements: the estimate, the 1 - alpha percent
