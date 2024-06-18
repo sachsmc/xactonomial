@@ -3,9 +3,11 @@ title: "Basic Examples"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Basic Examples}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
 bibliography: references.bib
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r, include = FALSE}
@@ -17,12 +19,11 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(xactonomial)
-library(parallel)
 ```
 
-Let $T_j$ be distributed $\mbox{Multinomial}_{d_j}(\boldsymbol{\theta}_j, n_j)$ for $j = 1, \ldots, k$ and denote $\boldsymbol{T} = (T_1, \ldots, T_k)$ and $\boldsymbol{\theta} = (\theta_1, \ldots, \theta_k)$. The subscript $d_j$ denotes the dimension of the multinomial. Suppose one is interested in the parameter $\psi(\boldsymbol{\theta}) \in \Theta \subseteq \mathbb{R}$. Given a sample of size $n$ from $\boldsymbol{T}$, one can estimate $\boldsymbol{\theta}$ with the sample proportions as $\hat{\boldsymbol{\theta}}$ and hence $\psi(\hat{\boldsymbol{\theta}})$. It would then be natural to construct a $1 - \alpha$ percent confidence interval for $\psi(\boldsymbol{\theta})$ and calculate a p value for a test of the null hypothesis $H_0: \psi(\boldsymbol{\theta}) \leq \psi_0$. 
+Let $T_j$ be distributed $\mbox{Multinomial}_{d_j}(\boldsymbol{\theta}_j, n_j)$ for $j = 1, \ldots, k$ and denote $\boldsymbol{T} = (T_1, \ldots, T_k)$ and $\boldsymbol{\theta} = (\theta_1, \ldots, \theta_k)$. The subscript $d_j$ denotes the dimension of the multinomial. Suppose one is interested in the parameter $\psi(\boldsymbol{\theta}) \in \Psi \subseteq \mathbb{R}$. Given a sample of size $n$ from $\boldsymbol{T}$, one can estimate $\boldsymbol{\theta}$ with the sample proportions as $\hat{\boldsymbol{\theta}}$ and hence $\psi(\hat{\boldsymbol{\theta}})$. It would then be natural to construct a $1 - \alpha$ percent confidence interval for $\psi(\boldsymbol{\theta})$ and calculate a p value for a test of the null hypothesis $H_0: \psi(\boldsymbol{\theta}) \leq \psi_0$. 
 
-If the functional $\psi$ is complex, or the variance of $\psi(\hat{\boldsymbol{\theta}})$ is otherwise difficult to calculate, then one may consider using the nonparametric bootstrap for inference [@efron1979bootstrap]. However, the bootstrap may perform poorly in small samples, e.g., not having the correct coverage or type I error [@bickel1981some]. Instead we propose a computational approach for computing p values and confidence intervals in this setting. 
+If the function $\psi$ is complex, or the variance of $\psi(\hat{\boldsymbol{\theta}})$ is otherwise difficult to calculate, then one may consider using the nonparametric bootstrap for inference [@efron1979bootstrap]. However, the bootstrap may perform poorly in small samples, e.g., not having the correct coverage or type I error [@bickel1981some]. Instead we propose a computational approach for computing valid p values and confidence intervals in this setting even in small samples. 
 
 Here is a simple illustration of the problem. Let 
 \[
@@ -51,18 +52,18 @@ psi_bc <- function(theta) {
 }
 
 true_psi_bc <- psi_bc(true_theta)
+true_psi_bc
 ```
 
 
 
-How bad is the bootstrap in this situation with different sample sizes? 
+The bootstrap is pretty bad in this case with small sample sizes
 
-
-```{r, cache = TRUE}
+```{r}
 run_one_bs <- function(i, n, psi, true_psi) {
   data <- sample_data(n)
   
-  bsamps <- replicate(500, {
+  bsamps <- replicate(200, {
     unlist(lapply(data, \(x) {
       #newx <- c(rmultinom(1, sum(x), prob = x / sum(x)))
       newx <- table(factor(sample(rep.int(1:length(x), times = x), sum(x), replace = TRUE), 
@@ -80,39 +81,98 @@ run_one_bs <- function(i, n, psi, true_psi) {
 cand_ns <- do.call(rbind, lapply(seq(10, 50, by = 5), \(i) c(i, i)))
 emp_coverage <- rep(NA, nrow(cand_ns))
 
-for(i in 1:nrow(cand_ns)) {
-  cover_boot <- mclapply(1:1000, run_one_bs, n = cand_ns[i, ], psi = psi_bc, 
-                         true_psi = true_psi_bc, mc.cores = detectCores() - 4)
+for(i in 1) {
+  cover_boot <- lapply(1:200, run_one_bs, n = cand_ns[i, ], psi = psi_bc, 
+                         true_psi = true_psi_bc)
   emp_coverage[i] <- mean(unlist(cover_boot))
 }
 
-knitr::kable(cbind("n in each group" = cand_ns[,1], "bootstrap 95% interval coverage" = emp_coverage))
+knitr::kable(cbind("n in each group" = cand_ns[1,1], "bootstrap 95% interval coverage" = emp_coverage[1]))
 ```
 
 That does not look too good. Let us see how our method performs. 
 
 
-```{r, cache = TRUE}
+```{r}
 
-xmres <- mclapply(1:1000, \(i) {
+xmres <- lapply(1:200, \(i) {
  system.time({
    data <- sample_data(n = c(10, 10))
-   results <- xactonomial(psi_bc, data, alpha = .05, psi_limits = c(0,1))
+   results <- xactonomial(psi_bc, data, alpha = .05, psi_limits = c(0,1), 
+                          chunksize = 50, maxit = 10)
  })
  results$conf.int
-}, mc.cores = detectCores() - 2)
+})
 
 coverage_exact <- sapply(xmres, \(cint) {
   true_psi_bc >= cint[1] & true_psi_bc <= cint[2]
 })
 
-mean(coverage_exact)
+knitr::kable(cbind("n in each group" = cand_ns[1,1], "exact 95% interval coverage" = mean(coverage_exact)))
 ```
 
 
 Much better!
 
 ## Causal bounds
+
+
+The setting of interest for this example is where $Z, X, Y$ are all binary taking values 0 or 1, and $U$ is an unmeasured variable of arbitrary dimension and range. Assume we have an independent and identically distributed sample $(Z_i, X_i, Y_i), i = 1, \ldots, n$ from a data generating mechanism that coincides with the following structural equation model:
+\begin{eqnarray}
+z &=& g_{Z}(\epsilon_{z}) \\ \nonumber
+x &=& g_{X}(\boldsymbol{u}, z, \epsilon_{x}) \\ \label{seqs}
+y &=& g_{Y}(\boldsymbol{u}, x, \epsilon_y), \nonumber
+\end{eqnarray}
+where the error terms $(\epsilon_{z},\epsilon_{x},\epsilon_y)$ are independent of each other, and of $U$. 
+
+We are interested in the parameter $\beta = p\{Y(X = 1) = 1\} - p\{Y(X = 0) = 1\}$, where the notation $Y(X = x)$ denotes potential outcome which represents the random variable $Y$ if everyone in the population were intervened upon to have the treatment $X = x$ [@rubin1974estimating]. Under the DAG, and without any other assumptions, $\beta$ is not identified, however tight bounds have been derived for this setting in terms of observable conditional probabilities of the form $p_{xy\cdot z} = p\{X = x, Y = y | Z = z\}$ [@balke1995thesis], [@Balke97], [@swanson2018partial]. They are 
+\begin{eqnarray}
+ \beta &\geq& \mbox{max} \left. \begin{cases}   
+   -1 + p_{00\cdot 1} + p_{11\cdot 1},\\ 
+    -1 + p_{00\cdot 1} + p_{11\cdot 0} \\
+   -1 + p_{00\cdot 0} + p_{11\cdot 0},\\ 
+ -1 + p_{00\cdot 0} + p_{11\cdot 1},\\ 
+   -2 + 2p_{00\cdot 0} + p_{01\cdot 1} + p_{11\cdot 0} + p_{11\cdot 1},\\ 
+   -2 + p_{00\cdot 0} + p_{00\cdot 1} + p_{10\cdot 0} + 2p_{11\cdot 1},\\ 
+     -2 + 2p_{00\cdot 1} + p_{01\cdot 0} + p_{11\cdot 0} + p_{11\cdot 1},\\ 
+   -2 + p_{00\cdot 0} + p_{00\cdot 1} + p_{10\cdot 1} + 2p_{11\cdot 0},
+   \end{cases}  \label{lower1} \right\} 
+\end{eqnarray}
+
+\begin{eqnarray*}
+ \beta &\leq& \mbox{min} \left. \begin{cases}   1 - p_{10\cdot 1} - p_{01\cdot 0},\\ 
+    1 - p_{10\cdot 1} - p_{01\cdot 1},\\ 
+   1 - p_{10\cdot 0} - p_{01\cdot 0},\\ 
+      1 - p_{10\cdot 0} - p_{01\cdot 1},\\ 
+   2 - 2p_{10\cdot 1} - p_{01\cdot 0} - p_{01\cdot 1} - p_{11\cdot 0},\\ 
+   2 - p_{00\cdot 1} - p_{10\cdot 0} - p_{10\cdot 1} - 2p_{01\cdot 0},\\ 
+ 2 - 2p_{10\cdot 0} - p_{01\cdot 0} - p_{01\cdot 1} - p_{11\cdot 1},\\ 
+   2 - p_{00\cdot 0} - p_{10\cdot 0} - p_{10\cdot 1} - 2p_{01\cdot 1}. 
+\end{cases}   \label{upper1} \right\} 
+\end{eqnarray*}
+Let 
+\[
+T_0 = \left(
+\begin{array}{c} 
+X = 0, Y = 0 | Z = 0 \\
+X = 1, Y = 0 | Z = 0 \\
+X = 0, Y = 1 | Z = 0 \\
+X = 1, Y = 1 | Z = 0 
+\end{array}
+\right)
+\mbox{ and } 
+T_1 = \left(
+\begin{array}{c} 
+X = 0, Y = 0 | Z = 1 \\
+X = 1, Y = 0 | Z = 1 \\
+X = 0, Y = 1 | Z = 1 \\
+X = 1, Y = 1 | Z = 1 
+\end{array}
+\right).
+\]
+$T_0$ and $T_1$ can be viewed as independent multinomial random variables with probabilities $(p_{00\cdot 0}, p_{10\cdot 0}, p_{01\cdot 0}, p_{11\cdot 0})$ and $(p_{00\cdot 1}, p_{10\cdot 1}, p_{01\cdot 1}, p_{11\cdot 1})$, respectively. The expressions for the lower and upper bounds are thus real-valued functions of these multinomial probabilties. 
+
+Focusing on the lower bound, let $\boldsymbol{p} = (p_{00\cdot 0}, p_{10\cdot 0}, p_{01\cdot 0}, p_{11\cdot 0}, p_{00\cdot 1}, p_{10\cdot 1}, p_{01\cdot 1}, p_{11\cdot 1})$ denote the vector of probabilities, and let $\psi(\boldsymbol{p})$ be the lower bound (the right-hand-side of the above expression).
 
 ```{r}
 psi_causal <- function(pp) {
@@ -139,27 +199,14 @@ psi_causal <- function(pp) {
 }
 
 true_psi_causal <- psi_causal(c(.45, .15, .3, .1, .05, .15, .4, .4))
+data <- sample_data(n = c(10, 10))
+results <- xactonomial(psi_causal, data, alpha = .05, psi_limits = c(-1,1), 
+                       maxit = 10, chunksize = 50)
 
-
-cover_boot <- mclapply(1:1000, run_one_bs, n = c(10,10), psi = psi_causal, 
-                         true_psi = true_psi_causal, mc.cores = detectCores() - 4)
-mean(unlist(cover_boot))
-
-xmres <- mclapply(1:20, \(i) {
- system.time({
-   data <- sample_data(n = c(10, 10))
-   results <- xactonomial(psi_causal, data, alpha = .05, psi_limits = c(-1,1))
- })
- results$conf.int
-}, mc.cores = detectCores() - 2)
-
-coverage_exact <- sapply(xmres, \(cint) {
-  true_psi_causal >= cint[1] & true_psi_causal <= cint[2]
-})
-
-mean(coverage_exact)
-
+results
 ```
+
+Our primary motivation for developing this method was to perform valid inference on causal bounds in small sample settings or in other cases where the bootstrap may not work. Symbolic nonparametric causal bounds have recently been developed for a variety of complex settings [@sachs2023general], [@gabriel2022causal], [@gabriel2023nonparametric], [@gabriel2023sharp]. The expressions for the bounds are similar to our example, and given estimates of those probabilities obtained from a sample, one can obtain estimated bounds. Inference, however, has been largely ignored in the bounds/partial identification literature, with most papers suggesting the nonparametric bootstrap for obtaining confidence regions on the upper and lower limits of the bounds. However, in small samples, bootstrap inference may perform quite poorly. Our alternative method is much more accurate, has little additional computational cost, and is broadly applicable to these settings. 
 
 
 ## References

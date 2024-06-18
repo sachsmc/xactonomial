@@ -4,7 +4,7 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of xactonomial is to use an exact (but computational and stochastic) method to compute a confidence interval and a function for calculation of p values in the k sample multinomial setting where interest is about a real-valued functional of the multinomial probabilities. 
+The goal of xactonomial is to use an exact (but computational and stochastic) method to compute a confidence interval and a function for calculation of p values in the k sample multinomial setting where interest is about a real-valued function of the multinomial probabilities. The method is designed to guarantee validity even in small sample sizes. 
 
 ## Installation
 

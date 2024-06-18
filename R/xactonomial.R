@@ -11,11 +11,11 @@
 #' \ldots, k} and denote \eqn{\boldsymbol{T} = (T_1, \ldots, T_k)} and
 #' \eqn{\boldsymbol{\theta} = (\theta_1, \ldots, \theta_k)}. The subscript
 #' \eqn{d_j} denotes the dimension of the multinomial. Suppose one is interested
-#' in the parameter \eqn{\psi(\boldsymbol{\theta}) \in \Theta \subseteq
+#' in the parameter \eqn{\psi(\boldsymbol{\theta}) \in \Psi \subseteq
 #' \mathbb{R}}. Given a sample of size \eqn{n} from \eqn{\boldsymbol{T}}, one
 #' can estimate \eqn{\boldsymbol{\theta}} with the sample proportions as
 #' \eqn{\hat{\boldsymbol{\theta}}} and hence
-#' \eqn{\pi(\hat{\boldsymbol{\theta}})}. This function constructs a \eqn{1 -
+#' \eqn{\psi(\hat{\boldsymbol{\theta}})}. This function constructs a \eqn{1 -
 #' \alpha} percent confidence interval for \eqn{\psi(\boldsymbol{\theta})} and
 #' provides a function to calculate a p value for a test of the null hypothesis
 #' \eqn{H_0: \psi(\boldsymbol{\theta}) \leq \psi_0}. We make no assumptions and
@@ -144,6 +144,8 @@ pvalue_psi0 <- function(psi0, psi, psi_hat, psi_obs, maxit, chunksize,
                         lower = TRUE, target,
                         SSpacearr, logC, d_k) {
 
+  B <- maxit*chunksize
+
   minus1 <- if(lower) 1 else -1
   II <- if(lower) psi_hat >= psi_obs else psi_hat <= psi_obs
 
@@ -157,11 +159,11 @@ pvalue_psi0 <- function(psi0, psi, psi_hat, psi_obs, maxit, chunksize,
     if(length(these_probs) == 0) next
 
     cand <- c(seqmaxes, these_probs)
-    if(all(is.na(cand))) seqmaxes[i] <- 1e-12 else {
+    if(all(is.na(cand))) seqmaxes[i] <- 1/B else {
       seqmaxes[i] <- max(cand, na.rm = TRUE)
     }
     if(seqmaxes[i] > target + .001) break
 
   }
-  if(all(is.na(seqmaxes))) return(1e-12) else max(seqmaxes, na.rm = TRUE)
+  if(all(is.na(seqmaxes))) return(1/B) else max(seqmaxes, na.rm = TRUE)
 }

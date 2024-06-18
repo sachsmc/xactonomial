@@ -1,3 +1,8 @@
+# xactonomial 0.4.0
+
+* Improve documentation
+* Initialize p value at 1/B instead of 0
+
 # xactonomial 0.3.0
 
 * Cleanup and bugfixes

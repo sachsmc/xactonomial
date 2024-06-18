@@ -4,12 +4,6 @@
     <loc>/404.html</loc>
   </url>
   <url>
-    <loc>/LICENSE-text.html</loc>
-  </url>
-  <url>
-    <loc>/LICENSE.html</loc>
-  </url>
-  <url>
     <loc>/articles/example.html</loc>
   </url>
   <url>
@@ -22,16 +16,22 @@
     <loc>/index.html</loc>
   </url>
   <url>
+    <loc>/LICENSE-text.html</loc>
+  </url>
+  <url>
+    <loc>/LICENSE.html</loc>
+  </url>
+  <url>
     <loc>/news/index.html</loc>
+  </url>
+  <url>
+    <loc>/reference/calc_probs_rust.html</loc>
   </url>
   <url>
     <loc>/reference/calc_prob_null.html</loc>
   </url>
   <url>
     <loc>/reference/calc_prob_null2.html</loc>
-  </url>
-  <url>
-    <loc>/reference/calc_probs_rust.html</loc>
   </url>
   <url>
     <loc>/reference/expand_index.html</loc>
@@ -62,6 +62,9 @@
   </url>
   <url>
     <loc>/reference/sspace_multinom.html</loc>
+  </url>
+  <url>
+    <loc>/reference/xactonomial-package.html</loc>
   </url>
   <url>
     <loc>/reference/xactonomial.html</loc>

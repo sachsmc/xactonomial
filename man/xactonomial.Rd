@@ -38,7 +38,7 @@ iteration}
 }
 \value{
 A list with 3 elements: the estimate, the 1 - alpha percent
-  confidence interval, and a function for calculation of p-values
+  confidence interval, and p-value
 }
 \description{
 We consider the k sample multinomial problem where we observe k vectors
@@ -53,11 +53,11 @@ Let \eqn{T_j} be distributed
 \ldots, k} and denote \eqn{\boldsymbol{T} = (T_1, \ldots, T_k)} and
 \eqn{\boldsymbol{\theta} = (\theta_1, \ldots, \theta_k)}. The subscript
 \eqn{d_j} denotes the dimension of the multinomial. Suppose one is interested
-in the parameter \eqn{\psi(\boldsymbol{\theta}) \in \Theta \subseteq
+in the parameter \eqn{\psi(\boldsymbol{\theta}) \in \Psi \subseteq
 \mathbb{R}}. Given a sample of size \eqn{n} from \eqn{\boldsymbol{T}}, one
 can estimate \eqn{\boldsymbol{\theta}} with the sample proportions as
 \eqn{\hat{\boldsymbol{\theta}}} and hence
-\eqn{\pi(\hat{\boldsymbol{\theta}})}. This function constructs a \eqn{1 -
+\eqn{\psi(\hat{\boldsymbol{\theta}})}. This function constructs a \eqn{1 -
 \alpha} percent confidence interval for \eqn{\psi(\boldsymbol{\theta})} and
 provides a function to calculate a p value for a test of the null hypothesis
 \eqn{H_0: \psi(\boldsymbol{\theta}) \leq \psi_0}. We make no assumptions and
