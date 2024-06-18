@@ -6,7 +6,7 @@
 # This file was created with the following call:
 #   .Call("wrap__make_xactonomial_wrappers", use_symbols = TRUE, package_name = "xactonomial")
 
-#' @docType package
+#' @docType _PACKAGE
 #' @usage NULL
 #' @useDynLib xactonomial, .registration = TRUE
 NULL

@@ -154,8 +154,9 @@ compute <span class="math inline">\(\psi\)</span>.</p>
 <span><span class="va">cand_ns</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">50</span>, by <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>, \<span class="op">(</span><span class="va">i</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">i</span>, <span class="va">i</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">emp_coverage</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">cand_ns</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">202406</span><span class="op">)</span></span>
 <span><span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">cover_boot</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">200</span>, <span class="va">run_one_bs</span>, n <span class="op">=</span> <span class="va">cand_ns</span><span class="op">[</span><span class="va">i</span>, <span class="op">]</span>, psi <span class="op">=</span> <span class="va">psi_bc</span>, </span>
+<span>  <span class="va">cover_boot</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">20</span>, <span class="va">run_one_bs</span>, n <span class="op">=</span> <span class="va">cand_ns</span><span class="op">[</span><span class="va">i</span>, <span class="op">]</span>, psi <span class="op">=</span> <span class="va">psi_bc</span>, </span>
 <span>                         true_psi <span class="op">=</span> <span class="va">true_psi_bc</span><span class="op">)</span></span>
 <span>  <span class="va">emp_coverage</span><span class="op">[</span><span class="va">i</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="va">cover_boot</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
@@ -168,17 +169,19 @@ compute <span class="math inline">\(\psi\)</span>.</p>
 </tr></thead>
 <tbody><tr class="odd">
 <td align="right">10</td>
-<td align="right">0.45</td>
+<td align="right">0.75</td>
 </tr></tbody>
 </table>
-<p>That does not look too good. Let us see how our method performs.</p>
+<p>This is only 20 replicates, so we should expect about 1 out of 20
+intervals to not cover. This does not look too good. Let us see how our
+method performs.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="va">xmres</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">200</span>, \<span class="op">(</span><span class="va">i</span><span class="op">)</span> <span class="op">{</span></span>
+<span><span class="va">xmres</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">20</span>, \<span class="op">(</span><span class="va">i</span><span class="op">)</span> <span class="op">{</span></span>
 <span> <span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="op">{</span></span>
 <span>   <span class="va">data</span> <span class="op">&lt;-</span> <span class="fu">sample_data</span><span class="op">(</span>n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
 <span>   <span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/xactonomial.html">xactonomial</a></span><span class="op">(</span><span class="va">psi_bc</span>, <span class="va">data</span>, alpha <span class="op">=</span> <span class="fl">.05</span>, psi_limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span><span class="op">)</span>, </span>
-<span>                          chunksize <span class="op">=</span> <span class="fl">50</span>, maxit <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
+<span>                          chunksize <span class="op">=</span> <span class="fl">200</span>, maxit <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
 <span> <span class="op">}</span><span class="op">)</span></span>
 <span> <span class="va">results</span><span class="op">$</span><span class="va">conf.int</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
@@ -195,10 +198,11 @@ compute <span class="math inline">\(\psi\)</span>.</p>
 </tr></thead>
 <tbody><tr class="odd">
 <td align="right">10</td>
-<td align="right">0.99</td>
+<td align="right">0.95</td>
 </tr></tbody>
 </table>
-<p>Much better!</p>
+<p>Much better! Again, this is only 20 replicates. Run more if you need
+more convincing.</p>
 <div class="section level2">
 <h2 id="causal-bounds">Causal bounds<a class="anchor" aria-label="anchor" href="#causal-bounds"></a>
 </h2>
@@ -308,10 +312,10 @@ bound (the right-hand-side of the above expression).</p>
 <span></span>
 <span><span class="va">results</span></span>
 <span><span class="co">#&gt; $estimate</span></span>
-<span><span class="co">#&gt; [1] 0</span></span>
+<span><span class="co">#&gt; [1] -0.2</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $conf.int</span></span>
-<span><span class="co">#&gt; [1] -0.6143309  0.4476654</span></span>
+<span><span class="co">#&gt; [1] -0.7460772  0.3557973</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $p.value</span></span>
 <span><span class="co">#&gt; [1] NA</span></span></code></pre></div>

@@ -81,8 +81,9 @@ run_one_bs <- function(i, n, psi, true_psi) {
 cand_ns <- do.call(rbind, lapply(seq(10, 50, by = 5), \(i) c(i, i)))
 emp_coverage <- rep(NA, nrow(cand_ns))
 
+set.seed(202406)
 for(i in 1) {
-  cover_boot <- lapply(1:200, run_one_bs, n = cand_ns[i, ], psi = psi_bc, 
+  cover_boot <- lapply(1:20, run_one_bs, n = cand_ns[i, ], psi = psi_bc, 
                          true_psi = true_psi_bc)
   emp_coverage[i] <- mean(unlist(cover_boot))
 }
@@ -90,16 +91,16 @@ for(i in 1) {
 knitr::kable(cbind("n in each group" = cand_ns[1,1], "bootstrap 95% interval coverage" = emp_coverage[1]))
 ```
 
-That does not look too good. Let us see how our method performs. 
+This is only 20 replicates, so we should expect about 1 out of 20 intervals to not cover. This does not look too good. Let us see how our method performs. 
 
 
 ```{r}
 
-xmres <- lapply(1:200, \(i) {
+xmres <- lapply(1:20, \(i) {
  system.time({
    data <- sample_data(n = c(10, 10))
    results <- xactonomial(psi_bc, data, alpha = .05, psi_limits = c(0,1), 
-                          chunksize = 50, maxit = 10)
+                          chunksize = 200, maxit = 10)
  })
  results$conf.int
 })
@@ -112,7 +113,7 @@ knitr::kable(cbind("n in each group" = cand_ns[1,1], "exact 95% interval coverag
 ```
 
 
-Much better!
+Much better! Again, this is only 20 replicates. Run more if you need more convincing.
 
 ## Causal bounds
 
