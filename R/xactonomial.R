@@ -18,15 +18,18 @@
 #' \eqn{\pi(\hat{\boldsymbol{\theta}})}. This function constructs a \eqn{1 -
 #' \alpha} percent confidence interval for \eqn{\psi(\boldsymbol{\theta})} and
 #' provides a function to calculate a p value for a test of the null hypothesis
-#' \eqn{H_0: \psi(\boldsymbol{\theta}) \leq \psi_0}. We make no assumptions and
-#' do not rely on large sample approximations. The computation in somewhat
-#' involved so it is best for small sample sizes.
+#' \eqn{H_0: \psi(\boldsymbol{\theta}) \neq \psi_0} for the two sided case,
+#' \eqn{H_0: \psi(\boldsymbol{\theta}) \leq \psi_0} for the case \code{alternative = "greater"}, and
+#' \eqn{H_0: \psi(\boldsymbol{\theta}) \geq \psi_0} for the case \code{alternative = "less"}.
+#' We make no assumptions and do not rely on large sample approximations.
+#' The computation is somewhat involved so it is best for small sample sizes.
 #'
 #' @param psi Function that takes in a vector of parameters and outputs a real
 #'   valued number
 #' @param data A list with k elements representing the vectors of counts of a
 #'   k-sample multinomial
-#' @param psi0 The null hypothesis value. A p value for a test of psi <= psi0 is computed. If NULL only a confidence interval is computed.
+#' @param psi0 The null hypothesis value for the parameter being tested. A p value for a test of psi <= psi0 is computed. If NULL only a confidence interval is computed.
+#' @param alternative a character string specifying the alternative hypothesis, must be one of "two.sided" (default), "greater" or "less"
 #' @param alpha A 1 - alpha percent confidence interval will be computed
 #' @param psi_limits A vector of length 2 giving the lower and upper limits of
 #'   the range of \eqn{\psi(\theta)}
@@ -48,8 +51,11 @@
 #' xactonomial(psi_ba, data, psi_limits = c(0, 1), maxit = 5, chunksize = 20)
 #'
 
-xactonomial <- function(psi, data, psi0 = NULL, alpha = .05, psi_limits,
+xactonomial <- function(psi, data, psi0 = NULL, alternative = c("two.sided", "less", "greater"),
+                        alpha = .05, psi_limits,
                         maxit = 50, chunksize = 500, conf.int = TRUE) {
+
+  alt <- match.arg(alternative)
 
   k <- length(data)
   d_k <- sapply(data, length)
@@ -76,10 +82,34 @@ xactonomial <- function(psi, data, psi0 = NULL, alpha = .05, psi_limits,
   }
 
   pvalue <- if(!is.null(psi0)) {
-    pvalue_psi0(psi0 = psi0, psi = psi, psi_hat = psi_hat,
+
+    if(alt == "greater") {
+      pvalue_psi0(psi0 = psi0, psi = psi, psi_hat = psi_hat,
                            psi_obs = psi_obs, maxit = maxit, chunksize = chunksize,
                            lower = TRUE, target = alpha / 2,
                            SSpacearr = SSpacearr, logC = logC, d_k = d_k)
+    } else if(alt == "less") {
+
+      pvalue_psi0(psi0 = psi0, psi = psi, psi_hat = psi_hat,
+                  psi_obs = psi_obs, maxit = maxit, chunksize = chunksize,
+                  lower = FALSE, target = alpha / 2,
+                  SSpacearr = SSpacearr, logC = logC, d_k = d_k)
+
+    } else if(alt == "two.sided") {
+
+      pl <- pvalue_psi0(psi0 = psi0, psi = psi, psi_hat = psi_hat,
+                        psi_obs = psi_obs, maxit = maxit, chunksize = chunksize,
+                        lower = TRUE, target = alpha / 2,
+                        SSpacearr = SSpacearr, logC = logC, d_k = d_k)
+      pu <- pvalue_psi0(psi0 = psi0, psi = psi, psi_hat = psi_hat,
+                        psi_obs = psi_obs, maxit = maxit, chunksize = chunksize,
+                        lower = FALSE, target = alpha / 2,
+                        SSpacearr = SSpacearr, logC = logC, d_k = d_k)
+
+      2 * min(pl, pu)
+
+    }
+
   } else NA
 
 
@@ -136,7 +166,7 @@ xactonomial <- function(psi, data, psi0 = NULL, alpha = .05, psi_limits,
 }
 
 
-#' Compute a p value for the test of psi <= psi0
+#' Compute a p value for the test of psi <= psi0 (lower = TRUE) or psi >= psi0 (lower = FALSE)
 #'
 #' @param psi0 The null value
 #' @param psi The function of interest
@@ -159,7 +189,7 @@ pvalue_psi0 <- function(psi0, psi, psi_hat, psi_obs, maxit, chunksize,
   minus1 <- if(lower) 1 else -1
   II <- if(lower) psi_hat >= psi_obs else psi_hat <= psi_obs
 
-  seqmaxes <- rep(NA, maxit)
+  seqmaxes <- rep(1 / (maxit * chunksize), maxit)
   for(i in 1:maxit) {
     theta_cands <- do.call("cbind", lapply(d_k, \(i) get_theta_random(i, chunksize)))
 
@@ -169,11 +199,11 @@ pvalue_psi0 <- function(psi0, psi, psi_hat, psi_obs, maxit, chunksize,
     if(length(these_probs) == 0) next
 
     cand <- c(seqmaxes, these_probs)
-    if(all(is.na(cand))) seqmaxes[i] <- 1e-12 else {
+    if(all(is.na(cand))) seqmaxes[i] <- 1/(maxit * chunksize) else {
       seqmaxes[i] <- max(cand, na.rm = TRUE)
     }
     if(seqmaxes[i] > target + .001) break
 
   }
-  if(all(is.na(seqmaxes))) return(1e-12) else max(seqmaxes, na.rm = TRUE)
+  max(seqmaxes, na.rm = TRUE)
 }

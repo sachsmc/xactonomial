@@ -13,3 +13,35 @@ test_that("confidence intervals for boundary problems", {
   expect_equal(xact_bin$conf.int[1], 0)
 
 })
+
+
+test_that("two sided tests", {
+
+
+
+  psi_bc <- function(theta, d = 2) {
+
+    gpsz <- length(theta) / d
+    cprod <- rep(1, gpsz)
+    j <- 1
+    for(i in 1:d) {
+      cprod <- cprod * theta[j:(j + gpsz - 1)]
+      j <- j + gpsz
+    }
+
+    sum((cprod)^(1/d))
+
+  }
+
+  data <- list(T1 = c(2,1,2,1), T2 = c(0,1,3,3))
+  set.seed(1)
+  expect_lt(xactonomial(psi_bc, data, psi_limits = c(0, 1), psi0 = .5,
+              maxit = 400, chunksize = 50)$p.value, .1)
+
+  expect_gt(xactonomial(psi_bc, data, psi_limits = c(0, 1), psi0 = .5, alternative = "less",
+              maxit = 100, chunksize = 20)$p.value, .1)
+
+  expect_lt(xactonomial(psi_bc, data, psi_limits = c(0, 1), psi0 = .5, alternative = "greater",
+              maxit = 400, chunksize = 50)$p.value, .1)
+
+})
