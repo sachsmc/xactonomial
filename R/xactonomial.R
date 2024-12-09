@@ -97,19 +97,31 @@ xactonomial <- function(psi, data, psi0 = NULL, alpha = .05, psi_limits,
   }
 
 
+  if(isTRUE(all.equal(psi_obs, psi_limits[1]))) {
+    lower_limit <- psi_obs
+  } else {
+    lower_limit <- itp_root(flower, psi_limits[1], psi_limits[2],
+                            fa = fall, fb = fbll, maxiter = 10,
+                            psi = psi, psi_hat = psi_hat, psi_obs = psi_obs,
+                            maxit = maxit, chunksize = chunksize,
+                            target = alpha / 2,
+                            SSpacearr = SSpacearr, logC = logC, d_k = d_k)
 
-  lower_limit <- itp_root(flower, psi_limits[1], psi_limits[2],
-                          fa = -alpha / 2, fb = 1 - alpha / 2, maxiter = 10,
-                          psi = psi, psi_hat = psi_hat, psi_obs = psi_obs,
-                          maxit = maxit, chunksize = chunksize,
-                          target = alpha / 2,
-                          SSpacearr = SSpacearr, logC = logC, d_k = d_k)
-  upper_limit <- itp_root(fupper, psi_limits[1], psi_limits[2],
-                          fa = 1-alpha / 2, fb = - alpha / 2, maxiter = 10,
-                          psi = psi, psi_hat = psi_hat, psi_obs = psi_obs,
-                          maxit = maxit, chunksize = chunksize,
-                          target = alpha / 2,
-                          SSpacearr = SSpacearr, logC = logC, d_k = d_k)
+  }
+
+
+  if(isTRUE(all.equal(psi_obs, psi_limits[2]))) {
+    upper_limit <- psi_obs
+  } else {
+    upper_limit <- itp_root(fupper, psi_limits[1], psi_limits[2],
+                            fa = 1-alpha / 2, fb = - alpha / 2, maxiter = 10,
+                            psi = psi, psi_hat = psi_hat, psi_obs = psi_obs,
+                            maxit = maxit, chunksize = chunksize,
+                            target = alpha / 2,
+                            SSpacearr = SSpacearr, logC = logC, d_k = d_k)
+
+  }
+
 
   c(lower_limit, upper_limit)
   } else c(NA, NA)

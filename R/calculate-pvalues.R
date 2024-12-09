@@ -89,7 +89,7 @@ calc_prob_null2 <- function(theta_cands, psi, psi0, minus1, SSpacearr, logC, II)
   theta_cands <- theta_cands[checkpsi, , drop = FALSE]
   m <- nrow(SSpacearr)
   n <- ncol(SSpacearr)
-  SSpacearr <- SSpacearr[II,]
+  SSpacearr <- SSpacearr[II,, drop = FALSE]
   logC <- logC[II]
 
 
