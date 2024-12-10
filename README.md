@@ -14,6 +14,12 @@ You can install the development version of xactonomial like so:
 remotes::install_github("sachsmc/xactonomial")
 ```
 
+but building the package from source requires a local rust environment. Instead, pre-built binaries can be found at https://sachsmc.r-universe.dev/xactonomial or used directly from R as
+``` r
+install.packages("xactonomial", repos = c('https://sachsmc.r-universe.dev', 'https://cloud.r-project.org'))
+```
+
+
 ## Example
 
 This is a basic example which shows you how to use the main function:
