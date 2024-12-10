@@ -1,7 +1,8 @@
 Package: xactonomial
 Type: Package
 Title: Exact Inference for Real-Valued Functionals of k-Sample Multinomial Parameters
-Version: 0.3.0
+Version: 0.4.0
+Date: 2024-12-10
 Authors@R: 
     c(person(given = "Michael C",
              family = "Sachs",
@@ -12,13 +13,13 @@ Authors@R:
 URL: https://github.com/sachsmc/xactonomial
 BugReports: https://github.com/sachsmc/xactonomial/issues
 Description: We consider the k sample multinomial problem where we observe k vectors
-    (possibly of different lengths), each representing an independent sample from
-    a multinomial. For a given function psi which takes in the concatenated
-    vector of multinomial probabilities and outputs a real number, we are
-    interested in constructing a confidence interval for psi. We use an exact (but 
-    computational and stochastic) method to compute a confidence interval and a 
-    function for calculation of p values. The details of the method will be in a 
-    forthcoming preprint. 
+    (possibly of different lengths), each representing an independent 
+    multinomial random vector. For a given function psi which takes in the concatenated
+    vector of multinomial probabilities and outputs a real number, this is a 
+    Monte Carlo estimation procedure of an exact p-value and confidence interval.
+    The resulting inference is valid even in small samples, and when the parameter is 
+    on the boundary, and when the function is nondifferentiable at the parameter value, 
+    all situations where asymptotic methods and the bootstrap would fail. 
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

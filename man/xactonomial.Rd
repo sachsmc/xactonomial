@@ -37,7 +37,7 @@ the range of \eqn{\psi(\theta)}}
 \item{chunksize}{The number of samples taken from the parameter space at each
 iteration}
 
-\item{conf.int}{Logical. If FALSE, no confidence interval is calculed, only the p-value.}
+\item{conf.int}{Logical. If FALSE, no confidence interval is calculated, only the p-value.}
 }
 \value{
 A list with 3 elements: the estimate, the 1 - alpha percent

@@ -5,7 +5,7 @@
 \alias{xactonomial-package}
 \title{xactonomial: Exact Inference for Real-Valued Functionals of k-Sample Multinomial Parameters}
 \description{
-We consider the k sample multinomial problem where we observe k vectors (possibly of different lengths), each representing an independent sample from a multinomial. For a given function psi which takes in the concatenated vector of multinomial probabilities and outputs a real number, we are interested in constructing a confidence interval for psi. We use an exact (but computational and stochastic) method to compute a confidence interval and a function for calculation of p values. The details of the method will be in a forthcoming preprint.
+We consider the k sample multinomial problem where we observe k vectors (possibly of different lengths), each representing an independent multinomial random vector. For a given function psi which takes in the concatenated vector of multinomial probabilities and outputs a real number, this is a Monte Carlo estimation procedure of an exact p-value and confidence interval. The resulting inference is valid even in small samples, and when the parameter is on the boundary, and when the function is nondifferentiable at the parameter value, all situations where asymptotic methods and the bootstrap would fail.
 }
 \seealso{
 Useful links:

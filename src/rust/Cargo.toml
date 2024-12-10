@@ -11,3 +11,4 @@ name = 'xactonomial'
 extendr-api = '*'
 rand = "0.8.5"
 itertools = "0.12.1"
+libR-sys = "0.7.1"

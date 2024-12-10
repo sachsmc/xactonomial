@@ -25,6 +25,25 @@ fn sample_unit_simplex(d: u32) -> Vec<f64> {
 }
 
 
+/// Return a random sample from the d unit simplex
+/// @export
+#[extendr(use_rng = true)]
+fn sample_unit_simplex2(d: u32) -> Vec<f64> {
+
+  let mut vals: Vec<f64> = (0..d-1).map(|_| unsafe { libR_sys::unif_rand() }).collect();
+  vals.push(1.0);
+  vals.push(0.0);
+  vals.sort_by(|a, b| a.partial_cmp(b).unwrap());
+
+  let mut valsret = vec![0.0; d as usize];
+  for ii in 1..d+1 {
+    let i = ii as usize;
+    valsret[i-1] = vals[i] - vals[i - 1];
+  }
+  valsret
+
+}
+
 /// Return n random samples from the d unit simplex
 /// @export
 #[extendr]
@@ -34,7 +53,7 @@ fn sample_unit_simplexn(d: u32, n: u32) -> Vec<f64> {
 
   for ii in 0..n {
     let _i = ii as usize;
-    valsret.append(&mut sample_unit_simplex(d));
+    valsret.append(&mut sample_unit_simplex2(d));
   }
   valsret
 
@@ -82,6 +101,7 @@ extendr_module! {
     mod xactonomial;
     fn sample_unit_simplex;
     fn sample_unit_simplexn;
+    fn sample_unit_simplex2;
     fn calc_probs_rust;
-   // fn rust_sspace;
+
 }
