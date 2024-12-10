@@ -8,6 +8,7 @@ xactonomial(
   psi,
   data,
   psi0 = NULL,
+  alternative = c("two.sided", "less", "greater"),
   alpha = 0.05,
   psi_limits,
   maxit = 50,
@@ -22,7 +23,9 @@ valued number}
 \item{data}{A list with k elements representing the vectors of counts of a
 k-sample multinomial}
 
-\item{psi0}{The null hypothesis value. A p value for a test of psi <= psi0 is computed. If NULL only a confidence interval is computed.}
+\item{psi0}{The null hypothesis value for the parameter being tested. A p value for a test of psi <= psi0 is computed. If NULL only a confidence interval is computed.}
+
+\item{alternative}{a character string specifying the alternative hypothesis, must be one of "two.sided" (default), "greater" or "less"}
 
 \item{alpha}{A 1 - alpha percent confidence interval will be computed}
 
@@ -38,7 +41,7 @@ iteration}
 }
 \value{
 A list with 3 elements: the estimate, the 1 - alpha percent
-  confidence interval, and a function for calculation of p-values
+  confidence interval, and p-value
 }
 \description{
 We consider the k sample multinomial problem where we observe k vectors
@@ -60,9 +63,11 @@ can estimate \eqn{\boldsymbol{\theta}} with the sample proportions as
 \eqn{\pi(\hat{\boldsymbol{\theta}})}. This function constructs a \eqn{1 -
 \alpha} percent confidence interval for \eqn{\psi(\boldsymbol{\theta})} and
 provides a function to calculate a p value for a test of the null hypothesis
-\eqn{H_0: \psi(\boldsymbol{\theta}) \leq \psi_0}. We make no assumptions and
-do not rely on large sample approximations. The computation in somewhat
-involved so it is best for small sample sizes.
+\eqn{H_0: \psi(\boldsymbol{\theta}) \neq \psi_0} for the two sided case,
+\eqn{H_0: \psi(\boldsymbol{\theta}) \leq \psi_0} for the case \code{alternative = "greater"}, and
+\eqn{H_0: \psi(\boldsymbol{\theta}) \geq \psi_0} for the case \code{alternative = "less"}.
+We make no assumptions and do not rely on large sample approximations.
+The computation is somewhat involved so it is best for small sample sizes.
 }
 \examples{
 psi_ba <- function(theta) {

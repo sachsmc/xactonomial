@@ -36,7 +36,7 @@
 #' @param maxit Maximum number of iterations of the stochastic procedure
 #' @param chunksize The number of samples taken from the parameter space at each
 #'   iteration
-#' @param conf.int Logical. If FALSE, no confidence interval is calculed, only the p-value.
+#' @param conf.int Logical. If FALSE, no confidence interval is calculated, only the p-value.
 #'
 #' @returns A list with 3 elements: the estimate, the 1 - alpha percent
 #'   confidence interval, and p-value
@@ -131,7 +131,7 @@ xactonomial <- function(psi, data, psi0 = NULL, alternative = c("two.sided", "le
     lower_limit <- psi_obs
   } else {
     lower_limit <- itp_root(flower, psi_limits[1], psi_limits[2],
-                            fa = fall, fb = fbll, maxiter = 10,
+                            fa = -alpha / 2, fb = 1 - alpha / 2, maxiter = 10,
                             psi = psi, psi_hat = psi_hat, psi_obs = psi_obs,
                             maxit = maxit, chunksize = chunksize,
                             target = alpha / 2,

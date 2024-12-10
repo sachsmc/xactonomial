@@ -2,7 +2,7 @@
 % Please edit documentation in R/xactonomial.R
 \name{pvalue_psi0}
 \alias{pvalue_psi0}
-\title{Compute a p value for the test of psi <= psi0}
+\title{Compute a p value for the test of psi <= psi0 (lower = TRUE) or psi >= psi0 (lower = FALSE)}
 \usage{
 pvalue_psi0(
   psi0,
@@ -45,5 +45,5 @@ pvalue_psi0(
 A p-value
 }
 \description{
-Compute a p value for the test of psi <= psi0
+Compute a p value for the test of psi <= psi0 (lower = TRUE) or psi >= psi0 (lower = FALSE)
 }
