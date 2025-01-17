@@ -15,7 +15,8 @@ pvalue_psi0(
   target,
   SSpacearr,
   logC,
-  d_k
+  d_k,
+  psi_v = FALSE
 )
 }
 \arguments{
@@ -40,6 +41,8 @@ pvalue_psi0(
 \item{logC}{The log multinomial coefficient}
 
 \item{d_k}{The vector of dimensions}
+
+\item{psi_v}{Is psi vectorized by row?}
 }
 \value{
 A p-value

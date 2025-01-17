@@ -1,8 +1,8 @@
 Package: xactonomial
 Type: Package
 Title: Exact Inference for Real-Valued Functionals of k-Sample Multinomial Parameters
-Version: 0.4.0
-Date: 2024-12-10
+Version: 0.4.1
+Date: 2025-01-08
 Authors@R: 
     c(person(given = "Michael C",
              family = "Sachs",

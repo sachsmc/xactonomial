@@ -13,7 +13,8 @@ xactonomial(
   psi_limits,
   maxit = 50,
   chunksize = 500,
-  conf.int = TRUE
+  conf.int = TRUE,
+  psi_is_vectorized = FALSE
 )
 }
 \arguments{
@@ -38,6 +39,8 @@ the range of \eqn{\psi(\theta)}}
 iteration}
 
 \item{conf.int}{Logical. If FALSE, no confidence interval is calculated, only the p-value.}
+
+\item{psi_is_vectorized}{Logical. If TRUE, expect that psi can take a matrix as input, and return a vector of length the number of rows, computing the statistic for each row of the matrix. If possible, this will substantially speed up the computation. See examples.}
 }
 \value{
 A list with 3 elements: the estimate, the 1 - alpha percent
@@ -77,5 +80,13 @@ psi_ba <- function(theta) {
   }
 data <- list(T1 = c(2,1,2,1), T2 = c(0,1,3,3))
 xactonomial(psi_ba, data, psi_limits = c(0, 1), maxit = 5, chunksize = 20)
+
+psi_ba_v <- function(theta) {
+theta1 <- theta[,1:4, drop = FALSE]
+theta2 <- theta[,5:8, drop = FALSE]
+rowSums(sqrt(theta1 * theta2))
+}
+data <- list(T1 = c(2,1,2,1), T2 = c(0,1,3,3))
+xactonomial(psi_ba_v, data, psi_limits = c(0, 1), maxit = 5, chunksize = 20, psi_is_vectorized = TRUE)
 
 }

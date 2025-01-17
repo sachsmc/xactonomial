@@ -37,6 +37,7 @@
 #' @param chunksize The number of samples taken from the parameter space at each
 #'   iteration
 #' @param conf.int Logical. If FALSE, no confidence interval is calculated, only the p-value.
+#' @param psi_is_vectorized Logical. If TRUE, expect that psi can take a matrix as input, and return a vector of length the number of rows, computing the statistic for each row of the matrix. If possible, this will substantially speed up the computation. See examples.
 #'
 #' @returns A list with 3 elements: the estimate, the 1 - alpha percent
 #'   confidence interval, and p-value
@@ -50,36 +51,82 @@
 #' data <- list(T1 = c(2,1,2,1), T2 = c(0,1,3,3))
 #' xactonomial(psi_ba, data, psi_limits = c(0, 1), maxit = 5, chunksize = 20)
 #'
+#' psi_ba_v <- function(theta) {
+#' theta1 <- theta[,1:4, drop = FALSE]
+#' theta2 <- theta[,5:8, drop = FALSE]
+#' rowSums(sqrt(theta1 * theta2))
+#' }
+#' data <- list(T1 = c(2,1,2,1), T2 = c(0,1,3,3))
+#' xactonomial(psi_ba_v, data, psi_limits = c(0, 1), maxit = 5, chunksize = 20, psi_is_vectorized = TRUE)
+#'
 
 xactonomial <- function(psi, data, psi0 = NULL, alternative = c("two.sided", "less", "greater"),
                         alpha = .05, psi_limits,
-                        maxit = 50, chunksize = 500, conf.int = TRUE) {
+                        maxit = 50, chunksize = 500, conf.int = TRUE,
+                        psi_is_vectorized = FALSE
+                        ) {
 
   alt <- match.arg(alternative)
 
   k <- length(data)
   d_k <- sapply(data, length)
-  psi_obs <- do.call(psi, lapply(data, \(x) x / sum(x)) |> unlist() |> list())
 
+  tmpdat <- lapply(data, \(x) x / sum(x)) |> unlist()
+  psi_obs <- if(psi_is_vectorized) {
+    psi(matrix(tmpdat, nrow = 1))
+  } else {
+    psi(tmpdat)
+  }
 
   SSpace <- lapply(data, \(x) sspace_multinom(length(x), sum(x)))
 
-  bigdex <- expand_index(sapply(SSpace, nrow))
-  psi_hat <- logC <- rep(NA, nrow(bigdex))
+  if(k == 1) {
 
-  SSpacearr <- array(dim = c(nrow(bigdex), sum(d_k)))
+    newX <- SSpace[[1]]
+    sumX <- sum(newX[1,])
+    logC <- lfactorial(sumX) - rowSums(apply(newX, 2, lfactorial))
 
-  for(i in 1:nrow(bigdex)) {
+    spacelist <- list(Sspace = newX, Sprobs = newX / sumX, logC = logC)
 
-    thisS <- lapply(1:length(bigdex[i,]), \(j){
-      Sj <- SSpace[[j]][bigdex[i, j],]
-      Sj
-    })
-    SSpacearr[i,] <- unlist(thisS)
-    psi_hat[i] <- do.call(psi, lapply(thisS, \(x) x / sum(x)) |> unlist() |> list())
-    logC[i] <- sum(sapply(thisS, \(x) log_multinom_coef(x, sum(x))))
+  } else if(k == 2) {
+
+    spacelist <- combinate(SSpace[[1]], SSpace[[2]])
+
+  } else {
+
+    spacelist <- combinate(SSpace[[1]], SSpace[[2]])
+    for(i in 3:k) {
+
+      spacelist <- combinate2(spacelist, SSpace[[i]])
+
+    }
 
   }
+
+
+  psi_hat <- if(psi_is_vectorized) psi(spacelist$Sprobs) else apply(spacelist$Sprobs, 1, psi)
+
+  # SProbs <- lapply(SSpace, \(v) v / rowSums(v))
+  #
+  # bigdex <- expand_index(sapply(SSpace, nrow))
+  # psi_hat <- logC <- rep(NA, nrow(bigdex))
+  #
+  # SSpacearr <- SSprobarr <- array(dim = c(nrow(bigdex), sum(d_k)))
+  # system.time({
+  # for(i in 1:nrow(bigdex)) {
+  #
+  #   thisS <- lapply(1:length(bigdex[i,]), \(j){
+  #     Sj <- SSpace[[j]][bigdex[i, j],]
+  #     Sj
+  #   })
+  #   SSpacearr[i,] <- unlist(thisS)
+  #   SSprobarr[i,] <- c(SProbs[[1]][bigdex[i,1],], SProbs[[2]][bigdex[i,2],])
+  #   psi_hat[i] <- psi(lapply(thisS, \(x) x / sum(x)) |> unlist() |> matrix(nrow = 1))
+  #   logC[i] <- sum(sapply(thisS, \(x) log_multinom_coef(x, sum(x))))
+  #
+  # }
+  # })
+
 
   pvalue <- if(!is.null(psi0)) {
 
@@ -87,24 +134,28 @@ xactonomial <- function(psi, data, psi0 = NULL, alternative = c("two.sided", "le
       pvalue_psi0(psi0 = psi0, psi = psi, psi_hat = psi_hat,
                            psi_obs = psi_obs, maxit = maxit, chunksize = chunksize,
                            lower = TRUE, target = alpha / 2,
-                           SSpacearr = SSpacearr, logC = logC, d_k = d_k)
+                           SSpacearr = spacelist$Sspace, logC = spacelist$logC, d_k = d_k,
+                  psi_v = psi_is_vectorized)
     } else if(alt == "less") {
 
       pvalue_psi0(psi0 = psi0, psi = psi, psi_hat = psi_hat,
                   psi_obs = psi_obs, maxit = maxit, chunksize = chunksize,
                   lower = FALSE, target = alpha / 2,
-                  SSpacearr = SSpacearr, logC = logC, d_k = d_k)
+                  SSpacearr = spacelist$Sspace, logC = spacelist$logC, d_k = d_k,
+                  psi_v = psi_is_vectorized)
 
     } else if(alt == "two.sided") {
 
       pl <- pvalue_psi0(psi0 = psi0, psi = psi, psi_hat = psi_hat,
                         psi_obs = psi_obs, maxit = maxit, chunksize = chunksize,
                         lower = TRUE, target = alpha / 2,
-                        SSpacearr = SSpacearr, logC = logC, d_k = d_k)
+                        SSpacearr = spacelist$Sspace, logC = spacelist$logC, d_k = d_k,
+                        psi_v = psi_is_vectorized)
       pu <- pvalue_psi0(psi0 = psi0, psi = psi, psi_hat = psi_hat,
                         psi_obs = psi_obs, maxit = maxit, chunksize = chunksize,
                         lower = FALSE, target = alpha / 2,
-                        SSpacearr = SSpacearr, logC = logC, d_k = d_k)
+                        SSpacearr = spacelist$Sspace, logC = spacelist$logC, d_k = d_k,
+                        psi_v = psi_is_vectorized)
 
       2 * min(pl, pu)
 
@@ -114,16 +165,18 @@ xactonomial <- function(psi, data, psi0 = NULL, alternative = c("two.sided", "le
 
 
   confint <- if(conf.int) {
-  flower <- function(x, psi, psi_hat, psi_obs, maxit, chunksize, target, SSpacearr, logC, d_k){
+  flower <- function(x, psi, psi_hat, psi_obs, maxit, chunksize, target, SSpacearr, logC, d_k, psi_v){
     pvalue_psi0(psi0 = x, psi = psi, psi_hat = psi_hat, psi_obs = psi_obs, maxit = maxit, chunksize = chunksize,
                 lower = TRUE, target = alpha / 2,
-                SSpacearr = SSpacearr, logC = logC, d_k = d_k) - alpha / 2
+                SSpacearr = spacelist$Sspace, logC = spacelist$logC, d_k = d_k,
+                psi_v = psi_v) - alpha / 2
   }
 
-  fupper <- function(x, psi, psi_hat, psi_obs, maxit, chunksize, target, SSpacearr, logC, d_k) {
+  fupper <- function(x, psi, psi_hat, psi_obs, maxit, chunksize, target, SSpacearr, logC, d_k, psi_v) {
     pvalue_psi0(psi0 = x, psi = psi, psi_hat = psi_hat, psi_obs = psi_obs, maxit = maxit, chunksize = chunksize,
                 lower = FALSE, target = alpha / 2,
-                SSpacearr = SSpacearr, logC = logC, d_k = d_k) - (alpha / 2)
+                SSpacearr = spacelist$Sspace, logC = spacelist$logC, d_k = d_k,
+                psi_v = psi_v) - (alpha / 2)
   }
 
 
@@ -135,7 +188,8 @@ xactonomial <- function(psi, data, psi0 = NULL, alternative = c("two.sided", "le
                             psi = psi, psi_hat = psi_hat, psi_obs = psi_obs,
                             maxit = maxit, chunksize = chunksize,
                             target = alpha / 2,
-                            SSpacearr = SSpacearr, logC = logC, d_k = d_k)
+                            SSpacearr = spacelist$Sspace, logC = spacelist$logC, d_k = d_k,
+                            psi_v = psi_is_vectorized)
 
   }
 
@@ -148,7 +202,8 @@ xactonomial <- function(psi, data, psi0 = NULL, alternative = c("two.sided", "le
                             psi = psi, psi_hat = psi_hat, psi_obs = psi_obs,
                             maxit = maxit, chunksize = chunksize,
                             target = alpha / 2,
-                            SSpacearr = SSpacearr, logC = logC, d_k = d_k)
+                            SSpacearr = spacelist$Sspace, logC = spacelist$logC, d_k = d_k,
+                            psi_v = psi_is_vectorized)
 
   }
 
@@ -179,12 +234,13 @@ xactonomial <- function(psi, data, psi0 = NULL, alternative = c("two.sided", "le
 #' @param SSpacearr The sample space array
 #' @param logC The log multinomial coefficient
 #' @param d_k The vector of dimensions
+#' @param psi_v Is psi vectorized by row?
 #' @returns A p-value
 #'
 
 pvalue_psi0 <- function(psi0, psi, psi_hat, psi_obs, maxit, chunksize,
                         lower = TRUE, target,
-                        SSpacearr, logC, d_k) {
+                        SSpacearr, logC, d_k, psi_v = FALSE) {
 
   minus1 <- if(lower) 1 else -1
   II <- if(lower) psi_hat >= psi_obs else psi_hat <= psi_obs
@@ -194,7 +250,7 @@ pvalue_psi0 <- function(psi0, psi, psi_hat, psi_obs, maxit, chunksize,
     theta_cands <- do.call("cbind", lapply(d_k, \(i) get_theta_random(i, chunksize)))
 
     these_probs <- calc_prob_null2(theta_cands, psi, psi0, minus1,
-                                   SSpacearr, logC, II)
+                                   SSpacearr, logC, II, psi_v = psi_v)
 
     if(length(these_probs) == 0) next
 

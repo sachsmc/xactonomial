@@ -1,3 +1,8 @@
+# xactonomial 0.4.1
+
+* Speedups
+* Seeding seed works for reproducibility
+
 # xactonomial 0.3.0
 
 * Cleanup and bugfixes

@@ -61,7 +61,7 @@ How bad is the bootstrap in this situation with different sample sizes?
 
 
 ```{r, cache = TRUE}
-run_one_bs <- function(i, n, psi, true_psi) {
+run_one_bs <- function(i, n, psi, true_psi, sample_data) {
   data <- sample_data(n)
   
   bsamps <- replicate(500, {
@@ -84,22 +84,31 @@ emp_coverage <- rep(NA, nrow(cand_ns))
 
 for(i in 1:nrow(cand_ns)) {
   cover_boot <- mclapply(1:1000, run_one_bs, n = cand_ns[i, ], psi = psi_bc, 
-                         true_psi = true_psi_bc, mc.cores = detectCores() - 4)
+                         true_psi = true_psi_bc, sample_data = sample_data, mc.cores = detectCores() - 4)
   emp_coverage[i] <- mean(unlist(cover_boot))
 }
 
 knitr::kable(cbind("n in each group" = cand_ns[,1], "bootstrap 95% interval coverage" = emp_coverage))
 ```
 
-That does not look too good. Let us see how our method performs. 
+That does not look too good. Let us see how our method performs. We are going to define the same psi function but vectorized this time. This improves the speed of xactonomial.
 
 
-```{r, cache = TRUE}
+```{r}
+
+psi_bc_v <- function(theta) {
+  
+  theta1 <- theta[,1:4, drop = FALSE]
+  theta2 <- theta[,5:8, drop = FALSE]
+  rowSums(sqrt(theta1 * theta2))
+  
+}
 
 xmres <- mclapply(1:200, \(i) {
  system.time({
    data <- sample_data(n = c(10, 10))
-   results <- xactonomial(psi_bc, data, alpha = .05, psi_limits = c(0,1), maxit = 100, chunksize = 100)
+   results <- xactonomial(psi_bc_v, data, alpha = .05, psi_limits = c(0,1), 
+                          maxit = 50, chunksize = 500, psi_is_vectorized = TRUE)
  })
  results$conf.int
 }, mc.cores = detectCores() - 2)
@@ -127,16 +136,20 @@ psi_causal <- function(pp) {
 
 true_psi_causal <- psi_causal(c(.4, .4, .2))
 
-
-cover_boot <- mclapply(1:200, run_one_bs, n = c(10,10, 10), psi = psi_causal, 
-                         true_psi = true_psi_causal, mc.cores = detectCores() - 4)
+sample_data2 <- function(n) {
+  
+  list(rmultinom(1, n, prob = c(.4, .4, .2))[, 1])
+  
+}
+cover_boot <- mclapply(1:200, run_one_bs, n = c(20), psi = psi_causal, 
+                         true_psi = true_psi_causal, sample_data = sample_data2, mc.cores = detectCores() - 4)
 mean(unlist(cover_boot))
 
 xmres <- mclapply(1:200, \(i) {
- system.time({
-   data <- sample_data(n = c(10, 10, 10))
+ #system.time({
+   data <- sample_data2(n = c(20))
    results <- xactonomial(psi_causal, data, alpha = .05, psi_limits = c(0,1), maxit = 100, chunksize = 100)
- })
+ #})
  results$conf.int
 }, mc.cores = detectCores() - 2)
 

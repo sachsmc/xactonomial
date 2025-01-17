@@ -24,9 +24,11 @@ calc_prob_null <- function(theta_cands, psi, psi0, minus1, SSpacearr, logC, II) 
 
 
   checkpsi <- if(minus1 == 1) {
-    apply(theta_cands, MAR = 1, psi) <= psi0
+    #apply(theta_cands, MAR = 1, psi) <= psi0
+    psi(theta_cands) <= psi0
   } else {
-    apply(theta_cands, MAR = 1, psi) >= psi0
+    #apply(theta_cands, MAR = 1, psi) >= psi0
+    psi(theta_cands) >= psi0
   }
 
   if(sum(checkpsi) == 0) return(NA)
@@ -70,20 +72,23 @@ calc_prob_null <- function(theta_cands, psi, psi0, minus1, SSpacearr, logC, II) 
 #' @param II logical vector of sample space psi being more extreme than the
 #'   observed psi
 #' @param logC log multinomial coefficient for each element of the sample space
+#' @param psi_v Is psi vectorized by row?
 #'
 #' @returns A numeric vector of probabilities
 #'
 #' @export
 #'
 
-calc_prob_null2 <- function(theta_cands, psi, psi0, minus1, SSpacearr, logC, II) {
+calc_prob_null2 <- function(theta_cands, psi, psi0, minus1, SSpacearr, logC, II, psi_v = FALSE) {
 
 
+  psi_theta <- if(psi_v) psi(theta_cands) else apply(theta_cands, MAR = 1, psi)
   checkpsi <- if(minus1 == 1) {
-    apply(theta_cands, MAR = 1, psi) <= psi0
+    psi_theta <= psi0
   } else {
-    apply(theta_cands, MAR = 1, psi) >= psi0
+    psi_theta >= psi0
   }
+
 
   if(sum(checkpsi) == 0) return(NA)
   theta_cands <- theta_cands[checkpsi, , drop = FALSE]

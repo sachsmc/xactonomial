@@ -195,48 +195,46 @@ itp_root <- function(f, a, b, k1 = .1, k2 = 2, n0 = 1,
 
 
 
+#' Calculate combinations of multinomials
+#'
+#' @param X Matrix 1
+#' @param Y Matrix 2
+#' @returns A list of arrays
+#'
+#' @export
+combinate <- function(X, Y) {
+  Yi <- rep(1:nrow(Y), rep.int(nrow(X), nrow(Y)))
+  Xi <- rep(1:nrow(X), times = ceiling(length(Yi)/nrow(X)))
+  newX <- X[Xi,]
+  newY <- Y[Yi,]
 
-# smart_sample_theta <- function(psi, psi0, psi_limits, d_k, chunksize = 200, lower = TRUE) {
-#
-#   psinull <- if(lower) {
-#     runif(chunksize, psi_limits[1], psi0)
-#   } else {
-#     runif(chunksize, psi0, psi_limits[2])
-#   }
-#
-#   f_theta <- \(theta, psi_j) {
-#
-#     theta <- plogis(theta)
-#     start <- 1
-#     for(d in d_k) {
-#       theta[start:(start + d - 1)] <- theta[start:(start + d - 1)] / sum(theta[start:(start + d - 1)])
-#       start <- start + d
-#     }
-#     (psi(theta) - psi_j)^2
-#
-#   }
-#
-#   #randstart <- do.call(cbind, lapply(d_k, \(i) qlogis(get_theta_random(i, chunksize))))
-#   randstart <- matrix(rnorm(chunksize * sum(d_k), sd = 2), nrow = chunksize, ncol = sum(d_k))
-#   out_thetas <- matrix(NA, nrow = chunksize, ncol = ncol(randstart))
-#   for(i in 1:chunksize) {
-#     res <- optim(randstart[i,], f_theta, psi_j = psinull[i])
-#     theta_i <- res$par
-#     theta_i <- plogis(theta_i)
-#     start <- 1
-#     for(d in d_k) {
-#       theta_i[start:(start + d - 1)] <- theta_i[start:(start + d - 1)] / sum(theta_i[start:(start + d - 1)])
-#       start <- start + d
-#     }
-#
-#     out_thetas[i, ] <- theta_i
-#   }
-#
-#   #out_thetas
-#   chkpsi <- apply(out_thetas, 1, psi)
-#   if(lower) out_thetas[chkpsi <= psi0,] else out_thetas[chkpsi >= psi0, ]
-#
-# }
+  sumX <- sum(newX[1,])
+  sumY <- sum(newY[1,])
+
+  logCX <- lfactorial(sumX) - rowSums(apply(newX, 2, lfactorial))
+  logCY <- lfactorial(sumY) - rowSums(apply(newY, 2, lfactorial))
+
+  list(Sspace = cbind(newX, newY), Sprobs = cbind(newX / sumX, newY / sumY), logC = logCX + logCY)
+
+}
 
 
+#' Like combinate but add to existing
+#'
+#' @param X A list as returned by combinate
+#' @param Y Matrix 2
+#' @returns A list of arrays
+#'
+#' @export
+combinate2 <- function(X, Y) {
+  Yi <- rep(1:nrow(Y), rep.int(nrow(X$Sspace), nrow(Y)))
+  Xi <- rep(1:nrow(X$Sspace), times = ceiling(length(Yi)/nrow(X$Sspace)))
+  newX <- X$Sspace[Xi,]
+  newY <- Y[Yi,]
 
+  sumY <- sum(newY[1,])
+  logCY <- lfactorial(sumY) - rowSums(apply(newY, 2, lfactorial))
+
+  list(Sspace = cbind(newX, newY), Sprobs = cbind(X$Sprobs[Xi,], newY / sumY), logC = X$logC[Xi] + logCY)
+
+}

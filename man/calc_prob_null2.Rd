@@ -4,7 +4,16 @@
 \alias{calc_prob_null2}
 \title{Calculate probability for given parameters}
 \usage{
-calc_prob_null2(theta_cands, psi, psi0, minus1, SSpacearr, logC, II)
+calc_prob_null2(
+  theta_cands,
+  psi,
+  psi0,
+  minus1,
+  SSpacearr,
+  logC,
+  II,
+  psi_v = FALSE
+)
 }
 \arguments{
 \item{theta_cands}{A matrix with samples in the rows and the parameters in
@@ -23,6 +32,8 @@ problem}
 
 \item{II}{logical vector of sample space psi being more extreme than the
 observed psi}
+
+\item{psi_v}{Is psi vectorized by row?}
 }
 \value{
 A numeric vector of probabilities
