@@ -100,6 +100,41 @@ get_theta_random <- function(d = 4, nsamp = 75) {
 }
 
 
+#' Sample uniformly from d_k simplexes
+#' @param d_k vector of vector lengths
+#' @param nsamp number of samples to take
+#' @returns A matrix with sum(d_k) columns and nsamp rows
+#' @export
+#' @examples
+#' runif_dk_vects(c(3, 4, 2), 10)
+runif_dk_vects <- function(d_k, nsamp, ...){
+
+  do.call("cbind", lapply(d_k, \(i) get_theta_random(i, nsamp)))
+
+}
+
+#' Sample from a Dirichlet distribution for each of d_k vectors
+#' @param d_k vector of vector lengths
+#' @param nsamp number of samples to take
+#' @param alpha List of vectors of concentration parameters
+#' @returns A matrix with sum(d_k) columns and nsamp rows
+#' @export
+#' @examples
+#' rdirich_dk_vects(c(3, 4, 2), 10, list(rep(1, 3), rep(1, 4), rep(1, 2)))
+#'
+rdirich_dk_vects <- function(d_k, nsamp, alpha) {
+
+  do.call("cbind", lapply(1:length(d_k), \(i) {
+
+    thisa <- alpha[[i]]
+    asamp <- sapply(thisa, \(a) rgamma(nsamp, shape = a))
+    asamp / rowSums(asamp)
+
+  }))
+
+}
+
+
 #' Find the root of the function f
 #'
 #' This finds the value \eqn{x \in [a, b]} such that \eqn{f(x) = 0} using the one-dimensional root finding ITP method (Interpolate Truncate Project). Also see \link[itp]{itp}.

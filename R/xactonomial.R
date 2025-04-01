@@ -106,27 +106,6 @@ xactonomial <- function(psi, data, psi0 = NULL, alternative = c("two.sided", "le
 
   psi_hat <- if(psi_is_vectorized) psi(spacelist$Sprobs) else apply(spacelist$Sprobs, 1, psi)
 
-  # SProbs <- lapply(SSpace, \(v) v / rowSums(v))
-  #
-  # bigdex <- expand_index(sapply(SSpace, nrow))
-  # psi_hat <- logC <- rep(NA, nrow(bigdex))
-  #
-  # SSpacearr <- SSprobarr <- array(dim = c(nrow(bigdex), sum(d_k)))
-  # system.time({
-  # for(i in 1:nrow(bigdex)) {
-  #
-  #   thisS <- lapply(1:length(bigdex[i,]), \(j){
-  #     Sj <- SSpace[[j]][bigdex[i, j],]
-  #     Sj
-  #   })
-  #   SSpacearr[i,] <- unlist(thisS)
-  #   SSprobarr[i,] <- c(SProbs[[1]][bigdex[i,1],], SProbs[[2]][bigdex[i,2],])
-  #   psi_hat[i] <- psi(lapply(thisS, \(x) x / sum(x)) |> unlist() |> matrix(nrow = 1))
-  #   logC[i] <- sum(sapply(thisS, \(x) log_multinom_coef(x, sum(x))))
-  #
-  # }
-  # })
-
 
   pvalue <- if(!is.null(psi0)) {
 
@@ -240,14 +219,16 @@ xactonomial <- function(psi, data, psi0 = NULL, alternative = c("two.sided", "le
 
 pvalue_psi0 <- function(psi0, psi, psi_hat, psi_obs, maxit, chunksize,
                         lower = TRUE, target,
-                        SSpacearr, logC, d_k, psi_v = FALSE) {
+                        SSpacearr, logC, d_k, psi_v = FALSE,
+                        sample_theta = runif_dk_vects
+                        ) {
 
   minus1 <- if(lower) 1 else -1
   II <- if(lower) psi_hat >= psi_obs else psi_hat <= psi_obs
 
   seqmaxes <- rep(1 / (maxit * chunksize), maxit)
   for(i in 1:maxit) {
-    theta_cands <- do.call("cbind", lapply(d_k, \(i) get_theta_random(i, chunksize)))
+    theta_cands <- sample_theta(d_k, chunksize) #do.call("cbind", lapply(d_k, \(i) get_theta_random(i, chunksize)))
 
     these_probs <- calc_prob_null2(theta_cands, psi, psi0, minus1,
                                    SSpacearr, logC, II, psi_v = psi_v)

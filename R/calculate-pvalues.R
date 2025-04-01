@@ -55,6 +55,68 @@ calc_prob_null <- function(theta_cands, psi, psi0, minus1, SSpacearr, logC, II) 
 }
 
 
+#' Gradient of the multinomial likelihood sum
+#'
+#' @param theta_cands A matrix with samples in the rows and the parameters in
+#'   the columns
+#' @param psi The function of interest mapping parameters to the real line
+#' @param psi0 The null boundary for testing psi <= psi0
+#' @param minus1 Either plus or minus 1
+#' @param SSpacearr A matrix with the sample space for the given size of the
+#'   problem
+#' @param II logical vector of sample space psi being more extreme than the
+#'   observed psi
+#'
+#' @returns A matrix the same dimension as theta_cands
+#'
+#' @export
+#' @examples
+#' calc_prob_null_gradient(t(c(.28, .32, .4)),
+#' \(s) s[, 1], .3, 1, matrix(c(2, 2, 1, 1, 2, 2, 0, 3, 2), ncol = 3),
+#' rep(TRUE, 3))
+#'
+#' # numerically
+#' testenv <- new.env()
+#' testenv$SSpacearr <- matrix(c(2, 2, 1, 1, 2, 2, 0, 3, 2), ncol = 3)
+#' testenv$thistheta <- c(.28, .32, .4)
+#' numericDeriv(quote(sum(exp((.colSums(t(SSpacearr) * log(thistheta), m = 3, n = 3))))),
+#'     theta = "thistheta", rho = testenv, central = TRUE)
+#'
+#'
+
+calc_prob_null_gradient <- function(theta_cands, psi, psi0, minus1, SSpacearr, II) {
+
+  checkpsi <- if(minus1 == 1) {
+    #apply(theta_cands, MAR = 1, psi) <= psi0
+    psi(theta_cands) <= psi0
+  } else {
+    #apply(theta_cands, MAR = 1, psi) >= psi0
+    psi(theta_cands) >= psi0
+  }
+
+  if(sum(checkpsi) == 0) return(NA)
+  theta_cands <- theta_cands[checkpsi, , drop = FALSE]
+  m <- nrow(SSpacearr)
+  n <- ncol(SSpacearr)
+  SSpacearr <- SSpacearr[II,]
+
+  res <- matrix(NA, nrow = nrow(theta_cands), ncol = ncol(theta_cands))
+
+  for(i in 1:nrow(theta_cands)) {
+
+    thistheta <- theta_cands[i,]
+
+    res[i,] <- .colSums(t(t(SSpacearr) / thistheta) *
+                         exp((.colSums(t(SSpacearr) * log(thistheta), m = n, n = sum(II)))), m = sum(II),
+                        n = length(thistheta)) ## way faster
+
+
+  }
+
+  res
+
+
+}
 
 #' Calculate probability for given parameters
 #'
