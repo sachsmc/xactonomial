@@ -16,7 +16,10 @@ pvalue_psi0(
   SSpacearr,
   logC,
   d_k,
-  psi_v = FALSE
+  psi_v = FALSE,
+  sample_theta = runif_dk_vects,
+  gradient_ascent = FALSE,
+  gamma = 10
 )
 }
 \arguments{
@@ -43,6 +46,12 @@ pvalue_psi0(
 \item{d_k}{The vector of dimensions}
 
 \item{psi_v}{Is psi vectorized by row?}
+
+\item{sample_theta}{Sampler}
+
+\item{gradient_ascent}{Do ga?}
+
+\item{gamma}{Parameter to determine concentration of dirichlet, only relevant if gradient_ascent = TRUE}
 }
 \value{
 A p-value

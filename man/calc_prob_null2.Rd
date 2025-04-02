@@ -4,16 +4,7 @@
 \alias{calc_prob_null2}
 \title{Calculate probability for given parameters}
 \usage{
-calc_prob_null2(
-  theta_cands,
-  psi,
-  psi0,
-  minus1,
-  SSpacearr,
-  logC,
-  II,
-  psi_v = FALSE
-)
+calc_prob_null2(theta_cands, psi, psi0, SSpacearr, logC, II, psi_v = FALSE)
 }
 \arguments{
 \item{theta_cands}{A matrix with samples in the rows and the parameters in
@@ -22,8 +13,6 @@ the columns}
 \item{psi}{The function of interest mapping parameters to the real line}
 
 \item{psi0}{The null boundary for testing psi <= psi0}
-
-\item{minus1}{Either plus or minus 1}
 
 \item{SSpacearr}{A matrix with the sample space for the given size of the
 problem}

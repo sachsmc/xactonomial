@@ -214,33 +214,68 @@ xactonomial <- function(psi, data, psi0 = NULL, alternative = c("two.sided", "le
 #' @param logC The log multinomial coefficient
 #' @param d_k The vector of dimensions
 #' @param psi_v Is psi vectorized by row?
+#' @param sample_theta Sampler
+#' @param gradient_ascent Do ga?
+#' @param gamma Parameter to determine concentration of dirichlet, only relevant if gradient_ascent = TRUE
 #' @returns A p-value
 #'
 
 pvalue_psi0 <- function(psi0, psi, psi_hat, psi_obs, maxit, chunksize,
                         lower = TRUE, target,
                         SSpacearr, logC, d_k, psi_v = FALSE,
-                        sample_theta = runif_dk_vects
+                        sample_theta = runif_dk_vects,
+                        gradient_ascent = FALSE, gamma = 10
                         ) {
 
-  minus1 <- if(lower) 1 else -1
+#  minus1 <- if(lower) 1 else -1
   II <- if(lower) psi_hat >= psi_obs else psi_hat <= psi_obs
 
-  seqmaxes <- rep(1 / (maxit * chunksize), maxit)
+  p.null <- rep(1 / (maxit * chunksize), maxit)
+  p.alt <- rep(1 / (maxit * chunksize), maxit)
+
+  theta_cands <- sample_theta(d_k, chunksize) #do.call("cbind", lapply(d_k, \(i) get_theta_random(i, chunksize)))
   for(i in 1:maxit) {
-    theta_cands <- sample_theta(d_k, chunksize) #do.call("cbind", lapply(d_k, \(i) get_theta_random(i, chunksize)))
 
-    these_probs <- calc_prob_null2(theta_cands, psi, psi0, minus1,
-                                   SSpacearr, logC, II, psi_v = psi_v)
-
-    if(length(these_probs) == 0) next
-
-    cand <- c(seqmaxes, these_probs)
-    if(all(is.na(cand))) seqmaxes[i] <- 1/(maxit * chunksize) else {
-      seqmaxes[i] <- max(cand, na.rm = TRUE)
+    psi_theta <- if(psi_v) psi(theta_cands) else apply(theta_cands, MAR = 1, psi)
+    null_indicator <- if(lower) {
+      psi_theta <= psi0
+    } else {
+      psi_theta >= psi0
     }
-    if(seqmaxes[i] > target + .001) break
+
+    if(sum(null_indicator) == 0) {
+      theta_cands <- sample_theta(d_k, chunksize)
+      next
+    }
+
+    theta_null <- theta_cands[null_indicator, , drop = FALSE]
+    theta_alt <- theta_cands[!null_indicator, , drop = FALSE]
+
+    probs_null <- calc_prob_null2(theta_null, psi, psi0,
+                                   SSpacearr, logC, II, psi_v = psi_v)
+    probs_alt <- calc_prob_null2(theta_alt, psi, psi0,
+                                 SSpacearr, logC, !II, psi_v = psi_v)
+
+    ## check the gradient at the largest value
+
+    if(gradient_ascent) {
+      grad_this <- calc_prob_null_gradient(theta_null[which.max(probs_null), , drop = FALSE],
+                                           psi, psi0, minus1, SSpacearr, II)
+      theta_cands <- theta_null[which.max(probs_null), , drop = FALSE] + grad_this[1,]
+      theta_cands <- theta_cands / sum(theta_cands)
+      theta_cands <- rdirich_dk_vects(chunksize, list(gamma * theta_cands))
+
+    } else {
+      theta_cands <- sample_theta(d_k, chunksize)
+    }
+
+
+    p.null[i] <- max(c(p.null, probs_null), na.rm = TRUE)
+    p.alt[i] <- max(c(p.alt, probs_alt), na.rm = TRUE)
+
+    if(p.null[i] > target + .001) break
+    #if(1 - p.alt[i] > target + .001) break
 
   }
-  max(seqmaxes, na.rm = TRUE)
+  max(p.null, na.rm = TRUE)
 }

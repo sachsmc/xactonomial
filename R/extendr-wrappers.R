@@ -2,8 +2,6 @@
 #
 # This file was created with the following call:
 #   .Call("wrap__make_xactonomial_wrappers", use_symbols = TRUE, package_name = "xactonomial")
-
-#' @docType package
 #' @usage NULL
 #' @useDynLib xactonomial, .registration = TRUE
 NULL
@@ -23,5 +21,13 @@ sample_unit_simplex2 <- function(d) .Call(wrap__sample_unit_simplex2, d)
 #' calculate multinomial probabilities
 #' @export
 calc_probs_rust <- function(sar, logt, logc, d, n, nt) .Call(wrap__calc_probs_rust, sar, logt, logc, d, n, nt)
+
+#' sample from a gamma(k, 1)
+#' @export
+sample_gamma <- function(k) .Call(wrap__sample_gamma, k)
+
+#' sample from a dirichlet(n, alpha)
+#' @export
+sample_dirichlet <- function(n, alpha) matrix(.Call(wrap__sample_dirichlet, n, alpha, length(alpha)), ncol = length(alpha), byrow = TRUE)
 
 

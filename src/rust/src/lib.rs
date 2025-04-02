@@ -59,6 +59,36 @@ fn sample_unit_simplexn(d: u32, n: u32) -> Vec<f64> {
 
 }
 
+/// random sample from a gamma(k, 1)
+#[extendr(use_rng = true)]
+fn sample_gamma(k: u32) -> f64 {
+
+  let vals: Vec<f64> = (0..k).map(|_| unsafe { libR_sys::unif_rand() }).collect();
+  vals.into_iter().map(|v| -v.ln()).sum::<f64>()
+
+}
+
+/// random sample from dirichlet(n, alpha)
+#[extendr(use_rng = true)]
+fn sample_dirichlet(n: u32, alpha: Vec<f64>, d: u32) -> Vec<f64> {
+
+  let ds = d as usize;
+  let mut valsret: Vec<f64> = Vec::with_capacity((n * d) as usize);
+
+  for _ii in 0..n {
+    let mut yi: Vec<f64> = Vec::with_capacity(ds);
+    let mut yisum = 0.0;
+    for j in 0..ds {
+      let js = j as usize;
+      yi.push(sample_gamma(alpha[js] as u32));
+      yisum = yisum + yi[js];
+    }
+    valsret.append(&mut yi.into_iter().map(|y| y / yisum).collect::<Vec<f64>>());
+  }
+  valsret
+}
+
+
 /// calculate multinomial probabilities
 /// @export
 #[extendr]
@@ -103,5 +133,7 @@ extendr_module! {
     fn sample_unit_simplexn;
     fn sample_unit_simplex2;
     fn calc_probs_rust;
+    fn sample_gamma;
+    fn sample_dirichlet;
 
 }

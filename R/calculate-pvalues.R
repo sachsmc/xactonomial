@@ -86,16 +86,6 @@ calc_prob_null <- function(theta_cands, psi, psi0, minus1, SSpacearr, logC, II) 
 
 calc_prob_null_gradient <- function(theta_cands, psi, psi0, minus1, SSpacearr, II) {
 
-  checkpsi <- if(minus1 == 1) {
-    #apply(theta_cands, MAR = 1, psi) <= psi0
-    psi(theta_cands) <= psi0
-  } else {
-    #apply(theta_cands, MAR = 1, psi) >= psi0
-    psi(theta_cands) >= psi0
-  }
-
-  if(sum(checkpsi) == 0) return(NA)
-  theta_cands <- theta_cands[checkpsi, , drop = FALSE]
   m <- nrow(SSpacearr)
   n <- ncol(SSpacearr)
   SSpacearr <- SSpacearr[II,]
@@ -128,7 +118,6 @@ calc_prob_null_gradient <- function(theta_cands, psi, psi0, minus1, SSpacearr, I
 #'   the columns
 #' @param psi The function of interest mapping parameters to the real line
 #' @param psi0 The null boundary for testing psi <= psi0
-#' @param minus1 Either plus or minus 1
 #' @param SSpacearr A matrix with the sample space for the given size of the
 #'   problem
 #' @param II logical vector of sample space psi being more extreme than the
@@ -141,24 +130,10 @@ calc_prob_null_gradient <- function(theta_cands, psi, psi0, minus1, SSpacearr, I
 #' @export
 #'
 
-calc_prob_null2 <- function(theta_cands, psi, psi0, minus1, SSpacearr, logC, II, psi_v = FALSE) {
+calc_prob_null2 <- function(theta_cands, psi, psi0, SSpacearr, logC, II, psi_v = FALSE) {
 
-
-  psi_theta <- if(psi_v) psi(theta_cands) else apply(theta_cands, MAR = 1, psi)
-  checkpsi <- if(minus1 == 1) {
-    psi_theta <= psi0
-  } else {
-    psi_theta >= psi0
-  }
-
-
-  if(sum(checkpsi) == 0) return(NA)
-  theta_cands <- theta_cands[checkpsi, , drop = FALSE]
-  m <- nrow(SSpacearr)
-  n <- ncol(SSpacearr)
   SSpacearr <- SSpacearr[II,, drop = FALSE]
   logC <- logC[II]
-
 
   res <- calc_probs_rust(1.0*c(t(SSpacearr)), log(c(t(theta_cands))),
                          logC, d = ncol(SSpacearr), n = sum(II), nt = nrow(theta_cands))
