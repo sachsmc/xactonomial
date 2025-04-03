@@ -14,7 +14,11 @@ xactonomial(
   maxit = 50,
   chunksize = 500,
   conf.int = TRUE,
-  psi_is_vectorized = FALSE
+  psi_is_vectorized = FALSE,
+  theta_sampler = runif_dk_vects,
+  ga = TRUE,
+  gamma.ga = 4,
+  restart_every = 10
 )
 }
 \arguments{

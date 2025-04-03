@@ -20,21 +20,11 @@
 #' @export
 #'
 
-calc_prob_null <- function(theta_cands, psi, psi0, minus1, SSpacearr, logC, II) {
+calc_prob_null <- function(theta_cands, psi, psi0, SSpacearr, logC, II) {
 
 
-  checkpsi <- if(minus1 == 1) {
-    #apply(theta_cands, MAR = 1, psi) <= psi0
-    psi(theta_cands) <= psi0
-  } else {
-    #apply(theta_cands, MAR = 1, psi) >= psi0
-    psi(theta_cands) >= psi0
-  }
-
-  if(sum(checkpsi) == 0) return(NA)
-  theta_cands <- theta_cands[checkpsi, , drop = FALSE]
-  m <- nrow(SSpacearr)
-  n <- ncol(SSpacearr)
+  n <- sum(II)
+  m <- ncol(SSpacearr)
   SSpacearr <- SSpacearr[II,]
   logC <- logC[II]
 
@@ -44,7 +34,7 @@ calc_prob_null <- function(theta_cands, psi, psi0, minus1, SSpacearr, logC, II) 
 
     thistheta <- theta_cands[i,]
 
-      res[i] <- sum(exp((.colSums(t(SSpacearr) * log(thistheta), m = n, n = sum(II)) +
+      res[i] <- sum(exp((.colSums(t(SSpacearr) * log(thistheta), m = m, n = n) +
                            logC))) ## way faster
       #res[i] <- sum(exp((c(SSpacearr %*% log(thistheta)) + logC)[II]))
 
@@ -84,7 +74,7 @@ calc_prob_null <- function(theta_cands, psi, psi0, minus1, SSpacearr, logC, II) 
 #'
 #'
 
-calc_prob_null_gradient <- function(theta_cands, psi, psi0, minus1, SSpacearr, II) {
+calc_prob_null_gradient <- function(theta_cands, psi, psi0, SSpacearr, II) {
 
   m <- nrow(SSpacearr)
   n <- ncol(SSpacearr)
@@ -130,7 +120,7 @@ calc_prob_null_gradient <- function(theta_cands, psi, psi0, minus1, SSpacearr, I
 #' @export
 #'
 
-calc_prob_null2 <- function(theta_cands, psi, psi0, SSpacearr, logC, II, psi_v = FALSE) {
+calc_prob_null2 <- function(theta_cands, psi, psi0, SSpacearr, logC, II) {
 
   SSpacearr <- SSpacearr[II,, drop = FALSE]
   logC <- logC[II]

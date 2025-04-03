@@ -63,7 +63,10 @@
 xactonomial <- function(psi, data, psi0 = NULL, alternative = c("two.sided", "less", "greater"),
                         alpha = .05, psi_limits,
                         maxit = 50, chunksize = 500, conf.int = TRUE,
-                        psi_is_vectorized = FALSE
+                        psi_is_vectorized = FALSE,
+                        theta_sampler = runif_dk_vects,
+                        ga = TRUE, gamma.ga = 4,
+                        restart_every = 10
                         ) {
 
   alt <- match.arg(alternative)
@@ -78,6 +81,7 @@ xactonomial <- function(psi, data, psi0 = NULL, alternative = c("two.sided", "le
     psi(tmpdat)
   }
 
+  sspace_size <- prod(sapply(data, \(dd) choose(length(dd) + sum(dd) - 1, length(dd) - 1)))
   SSpace <- lapply(data, \(x) sspace_multinom(length(x), sum(x)))
 
   if(k == 1) {
@@ -107,57 +111,54 @@ xactonomial <- function(psi, data, psi0 = NULL, alternative = c("two.sided", "le
   psi_hat <- if(psi_is_vectorized) psi(spacelist$Sprobs) else apply(spacelist$Sprobs, 1, psi)
 
 
-  pvalue <- if(!is.null(psi0)) {
+  pvalues <- if(!is.null(psi0)) {
 
-    if(alt == "greater") {
-      pvalue_psi0(psi0 = psi0, psi = psi, psi_hat = psi_hat,
-                           psi_obs = psi_obs, maxit = maxit, chunksize = chunksize,
-                           lower = TRUE, target = alpha / 2,
-                           SSpacearr = spacelist$Sspace, logC = spacelist$logC, d_k = d_k,
-                  psi_v = psi_is_vectorized)
-    } else if(alt == "less") {
+    pvalue_psi0(psi0, psi, psi_hat, psi_obs, maxit = maxit, chunksize = chunksize,
+                            target = 1, SSpacearr = spacelist$Sspace, logC = spacelist$logC,
+                            d_k = d_k, psi_v = psi_is_vectorized,
+                            sample_theta = theta_sampler,
+                            gradient_ascent = ga, gamma = gamma.ga,
+                            restart_every = restart_every)
 
-      pvalue_psi0(psi0 = psi0, psi = psi, psi_hat = psi_hat,
-                  psi_obs = psi_obs, maxit = maxit, chunksize = chunksize,
-                  lower = FALSE, target = alpha / 2,
-                  SSpacearr = spacelist$Sspace, logC = spacelist$logC, d_k = d_k,
-                  psi_v = psi_is_vectorized)
+#      2 * min(pl, pu)
 
-    } else if(alt == "two.sided") {
-
-      pl <- pvalue_psi0(psi0 = psi0, psi = psi, psi_hat = psi_hat,
-                        psi_obs = psi_obs, maxit = maxit, chunksize = chunksize,
-                        lower = TRUE, target = alpha / 2,
-                        SSpacearr = spacelist$Sspace, logC = spacelist$logC, d_k = d_k,
-                        psi_v = psi_is_vectorized)
-      pu <- pvalue_psi0(psi0 = psi0, psi = psi, psi_hat = psi_hat,
-                        psi_obs = psi_obs, maxit = maxit, chunksize = chunksize,
-                        lower = FALSE, target = alpha / 2,
-                        SSpacearr = spacelist$Sspace, logC = spacelist$logC, d_k = d_k,
-                        psi_v = psi_is_vectorized)
-
-      2 * min(pl, pu)
-
-    }
-
-  } else NA
+    } else NA
 
 
   confint <- if(conf.int) {
-  flower <- function(x, psi, psi_hat, psi_obs, maxit, chunksize, target, SSpacearr, logC, d_k, psi_v){
-    pvalue_psi0(psi0 = x, psi = psi, psi_hat = psi_hat, psi_obs = psi_obs, maxit = maxit, chunksize = chunksize,
-                lower = TRUE, target = alpha / 2,
-                SSpacearr = spacelist$Sspace, logC = spacelist$logC, d_k = d_k,
-                psi_v = psi_v) - alpha / 2
+  flower <- function(x, psi, psi_hat, psi_obs, maxit, chunksize, target, SSpacearr, logC, d_k, psi_v,
+                     theta_sampler, ga, gamma.ga, restart_every){
+    pvalue_psi0(x, psi, psi_hat, psi_obs, maxit = maxit, chunksize = chunksize,
+                target = target, SSpacearr = SSpacearr, logC = logC,
+                d_k = d_k, psi_v = psi_v,
+                sample_theta = theta_sampler,
+                gradient_ascent = ga, gamma = gamma.ga,
+                restart_every = restart_every)[1] - alpha / 2
   }
 
-  fupper <- function(x, psi, psi_hat, psi_obs, maxit, chunksize, target, SSpacearr, logC, d_k, psi_v) {
-    pvalue_psi0(psi0 = x, psi = psi, psi_hat = psi_hat, psi_obs = psi_obs, maxit = maxit, chunksize = chunksize,
-                lower = FALSE, target = alpha / 2,
-                SSpacearr = spacelist$Sspace, logC = spacelist$logC, d_k = d_k,
-                psi_v = psi_v) - (alpha / 2)
+  fupper <- function(x, psi, psi_hat, psi_obs, maxit, chunksize, target, SSpacearr, logC, d_k, psi_v,
+                     theta_sampler, ga, gamma.ga, restart_every){
+    pvalue_psi0(x, psi, psi_hat, psi_obs, maxit = maxit, chunksize = chunksize,
+                target = target, SSpacearr = SSpacearr, logC = logC,
+                d_k = d_k, psi_v = psi_v,
+                sample_theta = theta_sampler,
+                gradient_ascent = ga, gamma = gamma.ga,
+                restart_every = restart_every)[2] - alpha / 2
   }
 
+  seqpsi0 <- seq(psi_limits[1] + .001, psi_limits[2] - .001, length.out = 100)
+  peeseq <- lapply(seqpsi0, \(x) {
+    pvalue_psi0(x, psi, psi_hat, psi_obs, maxit = maxit, chunksize = chunksize,
+                target = .1, SSpacearr = spacelist$Sspace, logC = spacelist$logC,
+                d_k = d_k, psi_v = psi_is_vectorized,
+                sample_theta = theta_sampler,
+                gradient_ascent = FALSE, gamma = gamma.ga,
+                restart_every = restart_every)
+  })
+
+  dres <- cbind(seqpsi0, do.call(rbind, peeseq))
+  plot(dres[, 2] ~ dres[, 1], type = "l")
+  lines(dres[, 3]~ dres[, 1], col = "red")
 
   if(isTRUE(all.equal(psi_obs, psi_limits[1]))) {
     lower_limit <- psi_obs
@@ -166,9 +167,10 @@ xactonomial <- function(psi, data, psi0 = NULL, alternative = c("two.sided", "le
                             fa = -alpha / 2, fb = 1 - alpha / 2, maxiter = 10,
                             psi = psi, psi_hat = psi_hat, psi_obs = psi_obs,
                             maxit = maxit, chunksize = chunksize,
-                            target = alpha / 2,
+                            target = alpha / 2 + .005,
                             SSpacearr = spacelist$Sspace, logC = spacelist$logC, d_k = d_k,
-                            psi_v = psi_is_vectorized)
+                            psi_v = psi_is_vectorized, theta_sampler = theta_sampler,
+                            ga = ga, gamma.ga = gamma.ga, restart_every = restart_every)
 
   }
 
@@ -182,7 +184,8 @@ xactonomial <- function(psi, data, psi0 = NULL, alternative = c("two.sided", "le
                             maxit = maxit, chunksize = chunksize,
                             target = alpha / 2,
                             SSpacearr = spacelist$Sspace, logC = spacelist$logC, d_k = d_k,
-                            psi_v = psi_is_vectorized)
+                            psi_v = psi_is_vectorized, theta_sampler = theta_sampler,
+                            ga = ga, gamma.ga = gamma.ga, restart_every = restart_every)
 
   }
 
@@ -192,7 +195,7 @@ xactonomial <- function(psi, data, psi0 = NULL, alternative = c("two.sided", "le
 
   list(estimate = psi_obs,
        conf.int = confint,
-       p.value = pvalue
+       p.value = c(pvalues, 2 * min(pvalues))
        )
 
 
@@ -221,30 +224,28 @@ xactonomial <- function(psi, data, psi0 = NULL, alternative = c("two.sided", "le
 #'
 
 pvalue_psi0 <- function(psi0, psi, psi_hat, psi_obs, maxit, chunksize,
-                        lower = TRUE, target,
+                        target,
                         SSpacearr, logC, d_k, psi_v = FALSE,
                         sample_theta = runif_dk_vects,
-                        gradient_ascent = FALSE, gamma = 10
+                        gradient_ascent = FALSE, gamma = 10,
+                        restart_every = 100
                         ) {
 
-#  minus1 <- if(lower) 1 else -1
-  II <- if(lower) psi_hat >= psi_obs else psi_hat <= psi_obs
+  II.lower <- psi_hat >= psi_obs
 
   p.null <- rep(1 / (maxit * chunksize), maxit)
   p.alt <- rep(1 / (maxit * chunksize), maxit)
 
-  theta_cands <- sample_theta(d_k, chunksize) #do.call("cbind", lapply(d_k, \(i) get_theta_random(i, chunksize)))
+  theta_cands <- sample_theta(d_k, chunksize)
   for(i in 1:maxit) {
 
     psi_theta <- if(psi_v) psi(theta_cands) else apply(theta_cands, MAR = 1, psi)
-    null_indicator <- if(lower) {
-      psi_theta <= psi0
-    } else {
-      psi_theta >= psi0
-    }
+    null_indicator <- psi_theta <= psi0
 
-    if(sum(null_indicator) == 0) {
+    if(sum(null_indicator) == 0 | sum(null_indicator) == nrow(theta_cands) |
+       i %% restart_every == 0) {
       theta_cands <- sample_theta(d_k, chunksize)
+     # cat("blip\n")
       next
     }
 
@@ -252,18 +253,24 @@ pvalue_psi0 <- function(psi0, psi, psi_hat, psi_obs, maxit, chunksize,
     theta_alt <- theta_cands[!null_indicator, , drop = FALSE]
 
     probs_null <- calc_prob_null2(theta_null, psi, psi0,
-                                   SSpacearr, logC, II, psi_v = psi_v)
+                                   SSpacearr, logC, II.lower)
     probs_alt <- calc_prob_null2(theta_alt, psi, psi0,
-                                 SSpacearr, logC, !II, psi_v = psi_v)
+                                 SSpacearr, logC, !II.lower)
 
     ## check the gradient at the largest value
 
     if(gradient_ascent) {
       grad_this <- calc_prob_null_gradient(theta_null[which.max(probs_null), , drop = FALSE],
-                                           psi, psi0, minus1, SSpacearr, II)
+                                           psi, psi0, SSpacearr, II.lower)
       theta_cands <- theta_null[which.max(probs_null), , drop = FALSE] + grad_this[1,]
       theta_cands <- theta_cands / sum(theta_cands)
       theta_cands <- rdirich_dk_vects(chunksize, list(gamma * theta_cands))
+
+      grad_this_alt <- calc_prob_null_gradient(theta_alt[which.max(probs_alt), , drop = FALSE],
+                                           psi, psi0, SSpacearr, !II.lower)
+      theta_candsa <- theta_alt[which.max(probs_alt), , drop = FALSE] + grad_this_alt[1,]
+      theta_candsa <- theta_candsa / sum(theta_candsa)
+      theta_cands <- rbind(theta_cands, rdirich_dk_vects(chunksize, list(gamma * theta_candsa)))
 
     } else {
       theta_cands <- sample_theta(d_k, chunksize)
@@ -273,9 +280,9 @@ pvalue_psi0 <- function(psi0, psi, psi_hat, psi_obs, maxit, chunksize,
     p.null[i] <- max(c(p.null, probs_null), na.rm = TRUE)
     p.alt[i] <- max(c(p.alt, probs_alt), na.rm = TRUE)
 
-    if(p.null[i] > target + .001) break
+    if(p.null[i] > target & p.alt[i] > target) break
     #if(1 - p.alt[i] > target + .001) break
 
   }
-  max(p.null, na.rm = TRUE)
+  c(null = max(p.null, na.rm = TRUE), alt = max(p.alt, na.rm = TRUE))
 }

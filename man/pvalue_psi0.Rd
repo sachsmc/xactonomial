@@ -11,7 +11,6 @@ pvalue_psi0(
   psi_obs,
   maxit,
   chunksize,
-  lower = TRUE,
   target,
   SSpacearr,
   logC,
@@ -19,7 +18,8 @@ pvalue_psi0(
   psi_v = FALSE,
   sample_theta = runif_dk_vects,
   gradient_ascent = FALSE,
-  gamma = 10
+  gamma = 10,
+  restart_every = 100
 )
 }
 \arguments{
@@ -34,8 +34,6 @@ pvalue_psi0(
 \item{maxit}{Maximum iterations}
 
 \item{chunksize}{Chunk size}
-
-\item{lower}{Do a one sided test of the null that it is less than psi0, otherwise greater.}
 
 \item{target}{Stop the algorithm if p >= target (for speed)}
 
@@ -52,6 +50,8 @@ pvalue_psi0(
 \item{gradient_ascent}{Do ga?}
 
 \item{gamma}{Parameter to determine concentration of dirichlet, only relevant if gradient_ascent = TRUE}
+
+\item{lower}{Do a one sided test of the null that it is less than psi0, otherwise greater.}
 }
 \value{
 A p-value
