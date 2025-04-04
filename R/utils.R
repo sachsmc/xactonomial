@@ -119,14 +119,16 @@ runif_dk_vects <- function(d_k, nsamp, ...){
 #' @returns A matrix with sum(d_k) columns and nsamp rows
 #' @export
 #' @examples
-#' rdirich_dk_vects(c(3, 4, 2), 10, list(rep(1, 3), rep(1, 4), rep(1, 2)))
+#' rdirich_dk_vects(10, list(rep(1, 3), rep(1, 4), rep(1, 2)))
 #'
 rdirich_dk_vects <- function(nsamp, alpha) {
 
   d_k <- sapply(alpha, length)
   do.call("cbind", lapply(1:length(d_k), \(i) {
 
-    sample_dirichlet(nsamp, ceiling(alpha[[i]]))
+    #sample_dirichlet(nsamp, ceiling(alpha[[i]]))
+    yis <- matrix(rgamma(nsamp * length(alpha[[i]]), shape = rep(alpha[[i]], each = nsamp)), nrow = nsamp)
+    yis / rowSums(yis)
 
   }))
 

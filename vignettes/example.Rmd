@@ -108,7 +108,7 @@ xmres <- mclapply(1:200, \(i) {
  system.time({
    data <- sample_data(n = c(10, 10))
    results <- xactonomial(psi_bc_v, data, alpha = .05, psi_limits = c(0,1), 
-                          maxit = 50, chunksize = 200, psi_is_vectorized = TRUE)
+                          maxit = 10, chunksize = 200, psi_is_vectorized = TRUE)
  })
  results$conf.int
 }, mc.cores = detectCores() - 2)

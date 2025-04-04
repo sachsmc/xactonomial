@@ -80,6 +80,7 @@ calc_prob_null_gradient <- function(theta_cands, psi, psi0, SSpacearr, II) {
   n <- ncol(SSpacearr)
   SSpacearr <- SSpacearr[II,]
 
+  theta_cands[theta_cands < 1e-250] <- 1e-250
   res <- matrix(NA, nrow = nrow(theta_cands), ncol = ncol(theta_cands))
 
   for(i in 1:nrow(theta_cands)) {
@@ -125,6 +126,7 @@ calc_prob_null2 <- function(theta_cands, psi, psi0, SSpacearr, logC, II) {
   SSpacearr <- SSpacearr[II,, drop = FALSE]
   logC <- logC[II]
 
+  theta_cands[theta_cands < 1e-250] <- 1e-250
   res <- calc_probs_rust(1.0*c(t(SSpacearr)), log(c(t(theta_cands))),
                          logC, d = ncol(SSpacearr), n = sum(II), nt = nrow(theta_cands))
 

@@ -11,27 +11,6 @@ test_that("theta sampling functions work", {
 
   }
 
-  # true_theta <- t(c(.45, .15, .3, .1, .05, .15, .4, .4))
-  #
-  # sample_data <- function(n) {
-  #
-  #   T1 <- rmultinom(1, n[1], prob = true_theta[1,1:4])
-  #   T2 <- rmultinom(1, n[2], prob = true_theta[1,5:8])
-  #
-  #   list(T1 = c(T1), T2 = c(T2))
-  #
-  # }
-  #
-  # psi_bc <- function(theta) {
-  #
-  #   theta1 <- theta[, 1:4, drop = FALSE]
-  #   theta2 <- theta[, 5:8, drop = FALSE]
-  #   rowSums(sqrt(theta1 * theta2))
-  #
-  # }
-  #
-  # true_psi_bc <- psi_bc(true_theta)
-  # psi_max <- psi_bc
 
   data <- list(c(11, 7, 2))
   #data <- sample_data(c(10,5))
@@ -165,14 +144,13 @@ test_that("reviewer 1 problem is solved", {
   niterd <- 0
   peesd <- 1e-4
   p.unifd <- 0
-  dirich_param <- list(ceiling(data[[1]] + 1))
+  dirich_param <- list(ceiling(data[[1]] + .5 * (sum(data[[1]]))))
   start <- Sys.time()
   repeat{
     p.unifd <- max(p.unifd, pvalue_psi0(psi0 = .1^(1 / 20), psi = psi, psi_hat = psi_hat,
-                                        psi_obs = psi_obs, maxit = 1, chunksize = 2000,
-                                        lower = TRUE, target = 1,
+                                        psi_obs = psi_obs, maxit = 1, chunksize = 500, target = 1,
                                         SSpacearr = spacelist$Sspace, logC = spacelist$logC, d_k = d_k,
-                                        psi_v = TRUE, sample_theta = \(d_k, cs) rdirich_dk_vects(cs, dirich_param)))
+                                        psi_v = TRUE, sample_theta = \(d_k, cs) rdirich_dk_vects(cs, dirich_param))[1])
     niterd <- niterd + 1
     peesd <- c(peesd, p.unifd)
     if(0.1 - p.unifd < .001) break
@@ -189,13 +167,13 @@ test_that("reviewer 1 problem is solved", {
   repeat{
     p.unifg <- max(p.unifg, pvalue_psi0(psi0 = .1^(1 / 20), psi = psi, psi_hat = psi_hat,
                                         psi_obs = psi_obs, maxit = 5, chunksize = 2000,
-                                        lower = TRUE, target = 1,
+                                        target = 1,
                                         SSpacearr = spacelist$Sspace, logC = spacelist$logC, d_k = d_k,
-                                        psi_v = TRUE, gradient_ascent = TRUE, gamma = 4,
+                                        psi_v = TRUE, gradient_ascent = TRUE, gamma = 10,
                                         sample_theta = \(d_k, cs) rdirich_dk_vects(cs, dirich_param)))
     niterg <- niterg + 100
     peesg <- c(peesg, p.unifg)
-    if(0.2 - p.unifg < .001) break
+    if(0.1 - p.unifg < .001) break
 
   }
   secsg <- Sys.time() - start
