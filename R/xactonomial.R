@@ -62,6 +62,7 @@
 
 xactonomial <- function(psi, data, psi_limits, conf.int = TRUE, psi0 = NULL,
                         alternative = c("two.sided", "less", "greater"), alpha = .05,
+                        statistic = NULL,
                         maxit = 50, chunksize = 500,
                         psi_is_vectorized = FALSE, target = 1,
                         theta_sampler = runif_dk_vects,
@@ -70,17 +71,11 @@ xactonomial <- function(psi, data, psi_limits, conf.int = TRUE, psi0 = NULL,
                         spacelist = NULL
                         ) {
 
-  alt <- match.arg(alternative)
+  alternative <- match.arg(alternative)
 
   k <- length(data)
   d_k <- sapply(data, length)
-
-  tmpdat <- lapply(data, \(x) x / sum(x)) |> unlist()
-  psi_obs <- if(psi_is_vectorized) {
-    psi(matrix(tmpdat, nrow = 1))
-  } else {
-    psi(tmpdat)
-  }
+  n_k <- sapply(data, sum)
 
   sspace_size <- prod(sapply(data, \(dd) choose(length(dd) + sum(dd) - 1, length(dd) - 1)))
 
@@ -111,8 +106,38 @@ xactonomial <- function(psi, data, psi_limits, conf.int = TRUE, psi0 = NULL,
   }
   }
 
+  if(is.null(statistic)) { ## compute psi with empirical proportions
 
-  psi_hat <- if(psi_is_vectorized) psi(spacelist$Sprobs) else apply(spacelist$Sprobs, 1, psi)
+    statistic <- function(df) {
+      denom <- rep.int(n_k, d_k)
+      if(is.matrix(df)) {
+        pmat <- matrix(rep(denom, nrow(df)), nrow = nrow(df), ncol = length(denom), byrow = TRUE)
+        if(psi_is_vectorized) {
+          psi(df / pmat)
+        } else {
+          apply(df / pmat, 1, psi)
+        }
+      } else {
+        if(psi_is_vectorized) {
+          psi(t(df / denom))
+        } else {
+          psi(df / denom)
+        }
+
+      }
+
+    }
+
+  }
+
+  psi_obs <- statistic(unlist(data))
+  # psi_obs <- if(psi_is_vectorized) {
+  #   psi(matrix(dprobs, nrow = 1))
+  # } else {
+  #   psi(tmpdat)
+  # }
+
+  psi_hat <- statistic(spacelist$Sspace)
 
 
   pvalues <- if(!is.null(psi0)) {
@@ -125,7 +150,6 @@ xactonomial <- function(psi, data, psi_limits, conf.int = TRUE, psi0 = NULL,
                             gradient_ascent = ga, gamma = gamma.ga, lrate = lrate,
                             restart_every = restart_every)
 
-#      2 * min(pl, pu)
 
     } else NA
 
@@ -200,13 +224,26 @@ xactonomial <- function(psi, data, psi_limits, conf.int = TRUE, psi0 = NULL,
 
   p.sequence <- attr(pvalues, "p.sequence")
 
-  list(estimate = psi_obs,
-       conf.int = confint,
-       p.value = c(pvalues, 2 * min(pvalues)),
-       p.sequence = p.sequence
-       )
+  # list(estimate = psi_obs,
+  #      conf.int = confint,
+  #      p.value = c(pvalues, 2 * min(pvalues)),
+  #      p.sequence = p.sequence
+  #      )
 
+  attr(confint, "conf.level") = 1 - alpha
 
+  res <- list(
+    estimate = psi_obs,
+    p.value = switch(alt, "greater" = pvalues[1], "less" = pvalues[2], "two.sided" = 2 * min(pvalues)),
+    conf.int = confint,
+    null.value = psi0,
+    alternative = alternative,
+    method = "Monte-Carlo exact multinomial test",
+    data.name = deparse1(substitute(data)),
+    p.sequence = p.sequence
+  )
+  class(res) <- "htest"
+  res
 
 }
 
