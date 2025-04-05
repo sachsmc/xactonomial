@@ -9,6 +9,7 @@ pvalue_psi0(
   psi,
   psi_hat,
   psi_obs,
+  alternative = "two.sided",
   maxit,
   chunksize,
   target,
@@ -19,6 +20,7 @@ pvalue_psi0(
   sample_theta = runif_dk_vects,
   gradient_ascent = FALSE,
   gamma = 10,
+  lrate = 0.05,
   restart_every = 100
 )
 }

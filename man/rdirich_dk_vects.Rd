@@ -18,6 +18,6 @@ A matrix with sum(d_k) columns and nsamp rows
 Sample from a Dirichlet distribution for each of d_k vectors
 }
 \examples{
-rdirich_dk_vects(c(3, 4, 2), 10, list(rep(1, 3), rep(1, 4), rep(1, 2)))
+rdirich_dk_vects(10, list(rep(1, 3), rep(1, 4), rep(1, 2)))
 
 }

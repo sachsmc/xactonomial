@@ -7,18 +7,22 @@
 xactonomial(
   psi,
   data,
+  psi_limits,
+  conf.int = TRUE,
   psi0 = NULL,
   alternative = c("two.sided", "less", "greater"),
   alpha = 0.05,
-  psi_limits,
+  statistic = NULL,
   maxit = 50,
   chunksize = 500,
-  conf.int = TRUE,
   psi_is_vectorized = FALSE,
+  target = 1,
   theta_sampler = runif_dk_vects,
   ga = TRUE,
-  gamma.ga = 4,
-  restart_every = 10
+  gamma.ga = 1,
+  lrate = 0.01,
+  restart_every = 10,
+  spacelist = NULL
 )
 }
 \arguments{
@@ -28,21 +32,21 @@ valued number}
 \item{data}{A list with k elements representing the vectors of counts of a
 k-sample multinomial}
 
+\item{psi_limits}{A vector of length 2 giving the lower and upper limits of
+the range of \eqn{\psi(\theta)}}
+
+\item{conf.int}{Logical. If FALSE, no confidence interval is calculated, only the p-value.}
+
 \item{psi0}{The null hypothesis value for the parameter being tested. A p value for a test of psi <= psi0 is computed. If NULL only a confidence interval is computed.}
 
 \item{alternative}{a character string specifying the alternative hypothesis, must be one of "two.sided" (default), "greater" or "less"}
 
 \item{alpha}{A 1 - alpha percent confidence interval will be computed}
 
-\item{psi_limits}{A vector of length 2 giving the lower and upper limits of
-the range of \eqn{\psi(\theta)}}
-
 \item{maxit}{Maximum number of iterations of the stochastic procedure}
 
 \item{chunksize}{The number of samples taken from the parameter space at each
 iteration}
-
-\item{conf.int}{Logical. If FALSE, no confidence interval is calculated, only the p-value.}
 
 \item{psi_is_vectorized}{Logical. If TRUE, expect that psi can take a matrix as input, and return a vector of length the number of rows, computing the statistic for each row of the matrix. If possible, this will substantially speed up the computation. See examples.}
 }

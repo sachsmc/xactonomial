@@ -24,6 +24,38 @@ fn sample_unit_simplex(d: u32) -> Vec<f64> {
 
 }
 
+/// Multinomial sample space
+/// @export
+#[extendr]
+fn sspace_multinom_rust(d: u32, n: u32) -> Vec<u32> {
+
+  let di = d as usize;
+  let mut bins = vec![0; di];
+  bins[0] = n;
+  let mut res = bins.clone();
+
+  loop {
+    if &bins[di - 1] == &n {
+      break;
+    }
+    if bins[0] > 0 {
+      bins[0] -= 1;
+      bins[1] += 1;
+    } else {
+      let mut nz = 1usize;
+      while bins[nz-1] == 0 {
+        nz += 1;
+      }
+      bins[0] = &bins[nz-1] - 1;
+      bins[nz] += 1;
+      bins[nz-1] = 0;
+      }
+    res.extend(&bins);
+  }
+  res
+
+}
+
 
 /// Return a random sample from the d unit simplex
 /// @export
@@ -135,5 +167,6 @@ extendr_module! {
     fn calc_probs_rust;
     fn sample_gamma;
     fn sample_dirichlet;
+    fn sspace_multinom_rust;
 
 }

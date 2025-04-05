@@ -31,3 +31,6 @@ sample_gamma <- function(k) .Call(wrap__sample_gamma, k)
 sample_dirichlet <- function(n, alpha) matrix(.Call(wrap__sample_dirichlet, n, alpha, length(alpha)), ncol = length(alpha), byrow = TRUE)
 
 
+#' sample space of multinomial
+#' @export
+sspace_multinom <- function(d, n) matrix(.Call(wrap__sspace_multinom_rust, d, n), nrow = choose(n + d - 1, d - 1), byrow = TRUE)

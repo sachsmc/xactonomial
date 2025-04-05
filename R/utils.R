@@ -15,7 +15,7 @@
 #' stopifnot(abs(sum(apply(d4s, 1, dmultinom, prob = rep(.25, 4))) - 1) < 1e-12)
 #'
 
-sspace_multinom <- function(d, n) {
+sspace_multinom1 <- function(d, n) {
 
   if(d == 2) {
 
@@ -32,6 +32,37 @@ sspace_multinom <- function(d, n) {
     res
 
   }
+
+}
+
+
+sspace_multinom2 <- function(d, n) {
+
+  ncomb <- choose(d + n - 1, d - 1)
+  binss <- matrix(rep(c(n, rep(0, d - 1)), ncomb), nrow = ncomb, byrow = TRUE)
+  bins <- c(n, rep(0, d - 1))
+  i <- 2
+  repeat{
+    if(bins[d] == n) break
+    if(bins[1] > 0) {
+      bins[1] <- bins[1] - 1
+      bins[2] <- bins[2] + 1
+      #i <- i + 1
+    } else {
+      nz <- 2
+      while(bins[nz] == 0) {
+        nz <- nz + 1
+      }
+        bins[1] <- bins[nz] - 1
+        bins[nz + 1] <- bins[nz + 1] + 1
+        bins[nz] <- 0
+        #i <- i + 1
+      }
+    binss[i, ] <- bins
+    i <- i + 1
+  }
+
+  binss
 
 }
 

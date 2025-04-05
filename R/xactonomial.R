@@ -66,7 +66,7 @@ xactonomial <- function(psi, data, psi_limits, conf.int = TRUE, psi0 = NULL,
                         maxit = 50, chunksize = 500,
                         psi_is_vectorized = FALSE, target = 1,
                         theta_sampler = runif_dk_vects,
-                        ga = TRUE, gamma.ga = 4, lrate = .05,
+                        ga = TRUE, gamma.ga = 1, lrate = .01,
                         restart_every = 10,
                         spacelist = NULL
                         ) {
@@ -234,9 +234,9 @@ xactonomial <- function(psi, data, psi_limits, conf.int = TRUE, psi0 = NULL,
 
   res <- list(
     estimate = psi_obs,
-    p.value = switch(alt, "greater" = pvalues[1], "less" = pvalues[2], "two.sided" = 2 * min(pvalues)),
+    p.value = switch(alternative, "greater" = pvalues[1], "less" = pvalues[2], "two.sided" = 2 * min(pvalues)),
     conf.int = confint,
-    null.value = psi0,
+    null.value = c(psi0 = psi0),
     alternative = alternative,
     method = "Monte-Carlo exact multinomial test",
     data.name = deparse1(substitute(data)),
