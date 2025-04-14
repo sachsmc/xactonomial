@@ -158,7 +158,8 @@ rdirich_dk_vects <- function(nsamp, alpha) {
   do.call("cbind", lapply(1:length(d_k), \(i) {
 
     #sample_dirichlet(nsamp, ceiling(alpha[[i]]))
-    yis <- matrix(rgamma(nsamp * length(alpha[[i]]), shape = rep(alpha[[i]], each = nsamp)), nrow = nsamp)
+    gsamps <- rgamma(nsamp * length(alpha[[i]]), shape = rep(alpha[[i]], each = nsamp))
+    yis <- matrix(gsamps, nrow = nsamp)
     yis / rowSums(yis)
 
   }))

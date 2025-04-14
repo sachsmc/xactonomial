@@ -20,7 +20,7 @@
 #' @export
 #'
 
-calc_prob_null <- function(theta_cands, psi, psi0, SSpacearr, logC, II) {
+calc_prob_null <- function(theta_cands, SSpacearr, logC, II) {
 
 
   n <- sum(II)

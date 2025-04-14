@@ -5,50 +5,49 @@
 \title{Exact inference for a real-valued function of multinomial parameters}
 \usage{
 xactonomial(
-  psi,
   data,
-  psi_limits,
-  conf.int = TRUE,
+  psi,
+  statistic = NULL,
   psi0 = NULL,
   alternative = c("two.sided", "less", "greater"),
-  alpha = 0.05,
-  statistic = NULL,
+  psi_is_vectorized = FALSE,
+  psi_limits,
+  p_target = 1,
+  conf_int = TRUE,
+  conf_level = 0.95,
   maxit = 50,
   chunksize = 500,
-  psi_is_vectorized = FALSE,
-  target = 1,
   theta_sampler = runif_dk_vects,
   ga = TRUE,
-  gamma.ga = 1,
-  lrate = 0.01,
-  restart_every = 10,
-  spacelist = NULL
+  ga_gfactor = 1,
+  ga_lrate = 0.01,
+  ga_restart_every = 10
 )
 }
 \arguments{
-\item{psi}{Function that takes in a vector of parameters and outputs a real
-valued number}
-
 \item{data}{A list with k elements representing the vectors of counts of a
 k-sample multinomial}
 
-\item{psi_limits}{A vector of length 2 giving the lower and upper limits of
-the range of \eqn{\psi(\theta)}}
-
-\item{conf.int}{Logical. If FALSE, no confidence interval is calculated, only the p-value.}
+\item{psi}{Function that takes in a vector of parameters and outputs a real
+valued number}
 
 \item{psi0}{The null hypothesis value for the parameter being tested. A p value for a test of psi <= psi0 is computed. If NULL only a confidence interval is computed.}
 
 \item{alternative}{a character string specifying the alternative hypothesis, must be one of "two.sided" (default), "greater" or "less"}
 
-\item{alpha}{A 1 - alpha percent confidence interval will be computed}
+\item{psi_limits}{A vector of length 2 giving the lower and upper limits of
+the range of \eqn{\psi(\theta)}}
 
 \item{maxit}{Maximum number of iterations of the stochastic procedure}
 
 \item{chunksize}{The number of samples taken from the parameter space at each
 iteration}
 
-\item{psi_is_vectorized}{Logical. If TRUE, expect that psi can take a matrix as input, and return a vector of length the number of rows, computing the statistic for each row of the matrix. If possible, this will substantially speed up the computation. See examples.}
+\item{alpha}{A 1 - alpha percent confidence interval will be computed}
+
+\item{conf.int}{Logical. If FALSE, no confidence interval is calculated, only the p-value.}
+
+\item{psi.is.vectorized}{Logical. If TRUE, expect that psi can take a matrix as input, and return a vector of length the number of rows, computing the statistic for each row of the matrix. If possible, this will substantially speed up the computation. See examples.}
 }
 \value{
 A list with 3 elements: the estimate, the 1 - alpha percent
@@ -78,7 +77,8 @@ provides a function to calculate a p value for a test of the null hypothesis
 \eqn{H_0: \psi(\boldsymbol{\theta}) \leq \psi_0} for the case \code{alternative = "greater"}, and
 \eqn{H_0: \psi(\boldsymbol{\theta}) \geq \psi_0} for the case \code{alternative = "less"}.
 We make no assumptions and do not rely on large sample approximations.
-The computation is somewhat involved so it is best for small sample sizes.
+The computation is somewhat involved so it is best for small sample sizes
+though there are some strategies for speeding things up that are described in Details.
 }
 \examples{
 psi_ba <- function(theta) {
@@ -95,6 +95,6 @@ theta2 <- theta[,5:8, drop = FALSE]
 rowSums(sqrt(theta1 * theta2))
 }
 data <- list(T1 = c(2,1,2,1), T2 = c(0,1,3,3))
-xactonomial(psi_ba_v, data, psi_limits = c(0, 1), maxit = 5, chunksize = 20, psi_is_vectorized = TRUE)
+xactonomial(psi_ba_v, data, psi_limits = c(0, 1), maxit = 5, chunksize = 20, psi.is.vectorized = TRUE)
 
 }

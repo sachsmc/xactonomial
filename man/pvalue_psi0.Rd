@@ -12,16 +12,16 @@ pvalue_psi0(
   alternative = "two.sided",
   maxit,
   chunksize,
-  target,
+  p_target,
   SSpacearr,
   logC,
   d_k,
-  psi_v = FALSE,
-  sample_theta = runif_dk_vects,
-  gradient_ascent = FALSE,
-  gamma = 10,
-  lrate = 0.05,
-  restart_every = 100
+  psi_is_vectorized = FALSE,
+  theta_sampler = runif_dk_vects,
+  ga = FALSE,
+  ga_gfactor = 1,
+  ga_lrate = 0.01,
+  ga_restart_every = 10
 )
 }
 \arguments{
@@ -37,23 +37,23 @@ pvalue_psi0(
 
 \item{chunksize}{Chunk size}
 
-\item{target}{Stop the algorithm if p >= target (for speed)}
-
 \item{SSpacearr}{The sample space array}
 
 \item{logC}{The log multinomial coefficient}
 
 \item{d_k}{The vector of dimensions}
 
-\item{psi_v}{Is psi vectorized by row?}
+\item{theta_sampler}{Sampler}
 
-\item{sample_theta}{Sampler}
+\item{lower}{Do a one sided test of the null that it is less than psi0, otherwise greater.}
+
+\item{target}{Stop the algorithm if p >= target (for speed)}
+
+\item{psi_v}{Is psi vectorized by row?}
 
 \item{gradient_ascent}{Do ga?}
 
 \item{gamma}{Parameter to determine concentration of dirichlet, only relevant if gradient_ascent = TRUE}
-
-\item{lower}{Do a one sided test of the null that it is less than psi0, otherwise greater.}
 }
 \value{
 A p-value
