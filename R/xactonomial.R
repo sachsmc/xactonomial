@@ -4,7 +4,8 @@
 #' (possibly of different lengths), each representing an independent sample from
 #' a multinomial. For a given function psi which takes in the concatenated
 #' vector of multinomial probabilities and outputs a real number, we are
-#' interested in constructing a confidence interval for psi.
+#' interested in computing a p-value for a test of psi >= psi0, and constructing
+#' a confidence interval for psi.
 #'
 #' Let \eqn{T_j} be distributed
 #' \eqn{\mbox{Multinomial}_{d_j}(\boldsymbol{\theta}_j, n_j)} for \eqn{j = 1,
@@ -61,10 +62,10 @@
 #' xactonomial(psi_ba_v, data, psi_limits = c(0, 1), maxit = 5, chunksize = 20, psi.is.vectorized = TRUE)
 #'
 
-xactonomial <- function(data, psi, statistic = NULL, psi0 = NULL, theta_null_points = NULL,
+xactonomial <- function(data, psi, statistic = NULL, psi0 = NULL,
                         alternative = c("two.sided", "less", "greater"),
-                        psi_is_vectorized = FALSE, psi_limits, p_target = 1,
-                        conf_int = TRUE, conf_level = .95,
+                        psi_is_vectorized = FALSE, psi_limits, theta_boundary_points = NULL, p_target = 1,
+                        conf_int = TRUE, conf_level = .95, itp_maxit = 10,
                         maxit = 50, chunksize = 500,
                         theta_sampler = runif_dk_vects,
                         ga = TRUE, ga_gfactor = 1, ga_lrate = .01,
@@ -143,29 +144,25 @@ xactonomial <- function(data, psi, statistic = NULL, psi0 = NULL, theta_null_poi
   ## check if all elements of sample space above or below observed
 
 
-  if(!is.null(theta_null_points)) {
 
-    II.lower <- psi_hat >= psi_obs
-    II.upper <- psi_hat <= psi_obs
-    pvalues <- c(calc_prob_null(theta_null_points, spacelist$Sspace, spacelist$logC,  II.lower),
-                calc_prob_null(theta_null_points, spacelist$Sspace, spacelist$logC,  II.upper))
-    res <- list(
-      estimate = psi_obs,
-      p.value = switch(alternative, "greater" = pvalues[1], "less" = pvalues[2], "two.sided" = 2 * min(pvalues)),
-      conf.int = NULL,
-      null.value = c(psi0 = psi0),
-      alternative = alternative,
-      method = "Exact multinomial test for fixed null set",
-      data.name = deparse1(substitute(data)),
-      p.sequence = NULL
-    )
-    class(res) <- "htest"
-    return(res)
-
-  }
 
 
   pvalues <- if(!is.null(psi0)) {
+
+    if(!is.null(theta_boundary_points) & any(abs(psi0 - psi_limits) < 1e-8)) {
+
+      psi0bnd <- if(all.equal(psi0, psi_limits[1], check.names = FALSE, check.attributes = FALSE)) {
+        theta_boundary_points$lower
+      } else {
+        theta_boundary_points$upper
+      }
+      II.lower <- psi_hat >= psi_obs
+      II.upper <- psi_hat <= psi_obs
+     c(calc_prob_null(psi0bnd, spacelist$Sspace, spacelist$logC,  II.lower),
+       calc_prob_null(psi0bnd, spacelist$Sspace, spacelist$logC,  II.upper))
+
+
+    } else {
 
     pvalue_psi0(psi0 = psi0, psi = psi, psi_hat = psi_hat, psi_obs = psi_obs, alternative = alternative,
                 maxit = maxit, chunksize = chunksize,
@@ -175,6 +172,7 @@ xactonomial <- function(data, psi, statistic = NULL, psi0 = NULL, theta_null_poi
                             ga = ga, ga_gfactor = ga_gfactor, ga_lrate = ga_lrate,
                 ga_restart_every = ga_restart_every)
 
+    }
 
     } else NA
 
@@ -187,8 +185,19 @@ xactonomial <- function(data, psi, statistic = NULL, psi0 = NULL, theta_null_poi
                 d_k = d_k, psi_is_vectorized = psi_is_vectorized,
                 theta_sampler = theta_sampler,
                 ga = ga, ga_gfactor = ga_gfactor, ga_lrate = ga_lrate,
-                ga_restart_every = ga_restart_every)[1] - alpha / 2
+                ga_restart_every = ga_restart_every)[1] - alpha / 2}
+
+  if(!is.null(theta_boundary_points$lower)) {
+
+    II.lower <- psi_hat >= psi_obs
+
+    flower.boundary <- max(calc_prob_null2(theta_boundary_points$lower, spacelist$Sspace, spacelist$logC,  II.lower)) -
+      alpha / 2
+
+  } else {
+    flower.boundary <- -alpha / 2
   }
+
 
   fupper <- function(x, psi, psi_hat, psi_obs, maxit, chunksize, p_target, SSpacearr, logC, d_k, psi_is_vectorized,
                      theta_sampler, ga, ga_gfactor, ga_lrate, ga_restart_every){
@@ -200,37 +209,57 @@ xactonomial <- function(data, psi, statistic = NULL, psi0 = NULL, theta_null_poi
                 ga_restart_every = ga_restart_every)[2] - alpha / 2
   }
 
+  if(!is.null(theta_boundary_points$upper)) {
 
-  if(isTRUE(all.equal(psi_obs, min(psi_hat)))) {
+    II.upper <- psi_hat <= psi_obs
+    fupper.boundary <- max(calc_prob_null2(theta_boundary_points$upper, spacelist$Sspace, spacelist$logC,  II.upper)) -
+      alpha / 2
+
+  } else {
+    fupper.boundary <- - alpha / 2
+  }
+
+
+  if(isTRUE(all.equal(psi_obs, min(psi_hat))) | flower.boundary > 0) {
     lower_limit <- psi_limits[1]
   } else {
     lower_limit <- itp_root(flower, psi_limits[1], psi_limits[2],
-                            fa = -alpha / 2, fb = 1 - alpha / 2, maxiter = 10,
+                            fa = flower.boundary, fb = 1 - alpha / 2, maxiter = itp_maxit,
                             psi = psi, psi_hat = psi_hat, psi_obs = psi_obs,
                             maxit = maxit, chunksize = chunksize,
-                            p_target = alpha / 2 + .005,
+                            p_target = alpha / 2 + .01,
                             SSpacearr = spacelist$Sspace, logC = spacelist$logC,
                             d_k = d_k, psi_is_vectorized = psi_is_vectorized,
                             theta_sampler = theta_sampler,
                             ga = ga, ga_gfactor = ga_gfactor, ga_lrate = ga_lrate,
                             ga_restart_every = ga_restart_every)
+
+    if((attr(lower_limit, "iter") %||% itp_maxit) == itp_maxit){
+      lower_limit <- psi_limits[1]
+      warning("No root found for lower confidence limit, using lower boundary.")
+    }
 
   }
 
 
-  if(isTRUE(all.equal(psi_obs, max(psi_hat)))) {
+  if(isTRUE(all.equal(psi_obs, max(psi_hat))) | fupper.boundary > 0) {
     upper_limit <- psi_limits[2]
   } else {
     upper_limit <- itp_root(fupper, psi_limits[1], psi_limits[2],
-                            fa = 1-alpha / 2, fb = - alpha / 2, maxiter = 10,
+                            fa = 1-alpha / 2, fb = fupper.boundary, maxiter = itp_maxit,
                             psi = psi, psi_hat = psi_hat, psi_obs = psi_obs,
                             maxit = maxit, chunksize = chunksize,
-                            p_target = alpha / 2 + 0.005,
+                            p_target = alpha / 2 + 0.01,
                             SSpacearr = spacelist$Sspace, logC = spacelist$logC,
                             d_k = d_k, psi_is_vectorized = psi_is_vectorized,
                             theta_sampler = theta_sampler,
                             ga = ga, ga_gfactor = ga_gfactor, ga_lrate = ga_lrate,
                             ga_restart_every = ga_restart_every)
+
+    if((attr(upper_limit, "iter") %||%  itp_maxit) == itp_maxit){
+      upper_limit <- psi_limits[2]
+      warning("No root found for upper confidence limit, using upper boundary.")
+    }
 
   }
 
@@ -325,7 +354,7 @@ pvalue_psi0 <- function(psi0, psi, psi_hat, psi_obs, alternative = "two.sided",
 
       never_null <- FALSE
       theta_null <- this_theta[null_indicator, , drop = FALSE]
-      probs_null <- calc_prob_null2(theta_null, psi, psi0,
+      probs_null <- calc_prob_null2(theta_null,
                                     SSpacearr, logC, II.lower)
 
       p.null[i] <- max(c(p.null, probs_null), na.rm = TRUE)
@@ -337,9 +366,10 @@ pvalue_psi0 <- function(psi0, psi, psi_hat, psi_obs, alternative = "two.sided",
       if(isTRUE(null_continue)) {
       if(ga) {
         grad_this <- calc_prob_null_gradient(theta_null[which.max(probs_null), , drop = FALSE],
-                                             psi, psi0, SSpacearr, II.lower)
+                                             SSpacearr, II.lower)
+
         theta_cands_n <- theta_null[which.max(probs_null), , drop = FALSE] +
-          ga_lrate * grad_this[1,] / sum(grad_this[1,])
+          ga_lrate * grad_this[1,]
         theta_cands_n <- theta_cands_n / sum(theta_cands_n)
         gammat <- if(ga_gfactor == "adapt") 1 / max(.001, min(theta_cands_n)) else ga_gfactor
         theta_cands_n <- rdirich_dk_vects(chunksize, list(gammat * theta_cands_n))
@@ -359,7 +389,7 @@ pvalue_psi0 <- function(psi0, psi, psi_hat, psi_obs, alternative = "two.sided",
     if(sum(!null_indicator) > 0 & isTRUE(alt_continue)) {
       never_alt <- FALSE
       theta_alt <- this_theta[!null_indicator, , drop = FALSE]
-      probs_alt <- calc_prob_null2(theta_alt, psi, psi0,
+      probs_alt <- calc_prob_null2(theta_alt,
                                  SSpacearr, logC, II.upper)
     p.alt[i] <- max(c(p.alt, probs_alt), na.rm = TRUE)
     if(p.alt[i] > p_target) {
@@ -372,7 +402,7 @@ pvalue_psi0 <- function(psi0, psi, psi_hat, psi_obs, alternative = "two.sided",
     if(ga) {
 
       grad_this_alt <- calc_prob_null_gradient(theta_alt[which.max(probs_alt), , drop = FALSE],
-                                           psi, psi0, SSpacearr, II.upper)
+                                            SSpacearr, II.upper)
       theta_cands_a <- theta_alt[which.max(probs_alt), , drop = FALSE] + ga_lrate * grad_this_alt[1,]
       theta_cands_a <- theta_cands_a / sum(theta_cands_a)
       gammat <- if(ga_gfactor == "adapt") 1 / max(.001, min(theta_cands_a)) else ga_gfactor

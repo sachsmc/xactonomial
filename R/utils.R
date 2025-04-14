@@ -254,7 +254,9 @@ itp_root <- function(f, a, b, k1 = .1, k2 = 2, n0 = 1,
 
   }
 
-  (a + b) / 2
+  res <- (a + b) / 2
+  attr(res, "iter") <- j
+  res
 
 
 }

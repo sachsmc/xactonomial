@@ -74,7 +74,7 @@ calc_prob_null <- function(theta_cands, SSpacearr, logC, II) {
 #'
 #'
 
-calc_prob_null_gradient <- function(theta_cands, psi, psi0, SSpacearr, II) {
+calc_prob_null_gradient <- function(theta_cands, SSpacearr, II) {
 
   m <- nrow(SSpacearr)
   n <- ncol(SSpacearr)
@@ -121,7 +121,7 @@ calc_prob_null_gradient <- function(theta_cands, psi, psi0, SSpacearr, II) {
 #' @export
 #'
 
-calc_prob_null2 <- function(theta_cands, psi, psi0, SSpacearr, logC, II) {
+calc_prob_null2 <- function(theta_cands, SSpacearr, logC, II) {
 
   SSpacearr <- SSpacearr[II,, drop = FALSE]
   logC <- logC[II]
