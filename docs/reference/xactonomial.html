@@ -124,6 +124,10 @@ the range of \(\psi(\theta)\)</p></dd>
 <dd><p>If TRUE, calculates a confidence interval by inverting the p-value function</p></dd>
 
 
+<dt id="arg-conf-level">conf_level<a class="anchor" aria-label="anchor" href="#arg-conf-level"></a></dt>
+<dd><p>A number between 0 and 1, the confidence level.</p></dd>
+
+
 <dt id="arg-itp-maxit">itp_maxit<a class="anchor" aria-label="anchor" href="#arg-itp-maxit"></a></dt>
 <dd><p>Maximum iterations to use in the ITP algorithm. Only relevant if conf_int = TRUE.</p></dd>
 
@@ -253,7 +257,7 @@ ascent. At each iteration, the gradient of the multinomial probability at the cu
 theta is computed, and a step is taken to <code>theta + lrate * gradient</code>. Then
 for the next iteration, a set of <code>chunksize</code> samples are drawn from a Dirichlet distribution
 with parameter <code>ga_gfactor * (theta + ga_lrate * gradient)</code>. If <code>ga_gfactor = "adapt"</code> then
-it is set to <code>1 / max(theta)</code> at each iteration. The ITP algorithm itp is used
+it is set to <code>1 / max(theta)</code> at each iteration. The ITP algorithm <a href="itp_root.html">itp_root</a> is used
 to find roots of the p-value function as a function of the psi0 value to get confidence intervals.
 The maximum number of iterations and epsilon can be controlled via <code>itp_maxit, itp_eps</code>.</p>
     </div>

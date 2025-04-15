@@ -91,7 +91,8 @@ observed psi</p></dd>
 <span class="r-in"><span><span class="co"># same as below but faster</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="calc_prob_null.html">calc_prob_null</a></span><span class="op">(</span><span class="va">theta_cands</span>, <span class="va">sspace_3_5</span>,</span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">sspace_3_5</span>, <span class="fl">1</span>, <span class="va">log_multinom_coef</span>, sumx <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>, II <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">21</span> <span class="op">&gt;</span> <span class="fl">12</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in calc_prob_null(theta_cands, sspace_3_5, apply(sspace_3_5, 1,     log_multinom_coef, sumx = 5), II = 1:21 &gt; 12):</span> could not find function "calc_prob_null"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [1] 0.3851906695 0.2467206393 0.3338235041 0.0004533876 0.0076767952</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [6] 0.7663105384 0.7588514445 0.2469748988 0.4370544499 0.9424411110</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

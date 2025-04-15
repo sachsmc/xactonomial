@@ -54,26 +54,19 @@
 <dd><p>Vector of observed counts in each cell</p></dd>
 
 
-<dt id="arg-size">size<a class="anchor" aria-label="anchor" href="#arg-size"></a></dt>
+<dt id="arg-sumx">sumx<a class="anchor" aria-label="anchor" href="#arg-sumx"></a></dt>
 <dd><p>Total count</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>The log multinomial coefficient</p>
+    <p>The vector of log multinomial coefficients</p>
     </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co">#' @examples</span></span></span>
-<span class="r-in"><span><span class="va">S0</span> <span class="op">&lt;-</span> <span class="fu"><a href="sspace_multinom.html">sspace_multinom</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">6</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">S1</span> <span class="op">&lt;-</span> <span class="fu"><a href="sspace_multinom.html">sspace_multinom</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">7</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">S0</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="sspace_multinom.html">sspace_multinom</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">6</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">4</span>, byrow <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">logC0</span><span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">S0</span>,<span class="fl">1</span>,<span class="va">log_multinom_coef</span>,sumx<span class="op">=</span><span class="fl">6</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in apply(S0, 1, log_multinom_coef, sumx = 6):</span> dim(X) must have a positive length</span>
-<span class="r-in"><span><span class="va">logC1</span><span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">S1</span>,<span class="fl">1</span>,<span class="va">log_multinom_coef</span>,sumx<span class="op">=</span><span class="fl">7</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in apply(S1, 1, log_multinom_coef, sumx = 7):</span> dim(X) must have a positive length</span>
-<span class="r-in"><span><span class="va">logC</span><span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/outer.html" class="external-link">outer</a></span><span class="op">(</span><span class="va">logC0</span>,<span class="va">logC1</span>,<span class="st">'+'</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'logC0' not found</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
