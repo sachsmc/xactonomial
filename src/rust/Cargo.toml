@@ -1,7 +1,9 @@
 [package]
 name = 'xactonomial'
+publish = false
 version = '0.1.0'
 edition = '2021'
+rust-version = '1.65'
 
 [lib]
 crate-type = [ 'staticlib' ]
@@ -9,5 +11,4 @@ name = 'xactonomial'
 
 [dependencies]
 extendr-api = '*'
-rand = "0.8.5"
-libR-sys = "0.7.1"
+libR-sys = '0.7.*'
