@@ -72,7 +72,7 @@ test_that("three samples", {
 
   set.seed(5)
   test <- xactonomial(data, psi_ba_v, psi_limits = c(0, 1), psi0 = .2, conf_int = FALSE,
-                      maxit = 500, chunksize = 500, psi_is_vectorized = TRUE, ga = FALSE)
+                      maxit = 500, chunksize = 500,  ga = FALSE)
   expect_lt(test$p.value, .4)
 
 

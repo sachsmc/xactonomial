@@ -4,7 +4,7 @@
 \alias{runif_dk_vects}
 \title{Sample uniformly and independently from d_k simplices}
 \usage{
-runif_dk_vects(d_k, nsamp, ...)
+runif_dk_vects(d_k, nsamp)
 }
 \arguments{
 \item{d_k}{vector of vector lengths}

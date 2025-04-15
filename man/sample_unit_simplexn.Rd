@@ -18,5 +18,5 @@ The grid over Theta, the parameter space. To be converted to a matrix with d col
 Sample n times from the unit simplex in d dimensions
 }
 \examples{
-matrix(sample_unit_simplexn(3, 10), ncol = d, byrow = TRUE)
+matrix(sample_unit_simplexn(3, 10), ncol = 3, byrow = TRUE)
 }

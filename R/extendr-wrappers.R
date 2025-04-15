@@ -16,7 +16,7 @@ NULL
 #' @returns The grid over Theta, the parameter space. To be converted to a matrix with d columns and nsamp rows
 #' @export
 #' @examples
-#' matrix(sample_unit_simplexn(3, 10), ncol = d, byrow = TRUE)
+#' matrix(sample_unit_simplexn(3, 10), ncol = 3, byrow = TRUE)
 sample_unit_simplexn <- function(d, n) .Call(wrap__sample_unit_simplexn, d, n)
 
 #' Calculate multinomial probabilities

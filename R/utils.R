@@ -37,17 +37,14 @@ sspace_multinom_slow <- function(d, n) {
 
 
 #' Calculate log of multinomial coefficient
+#'
 #' @param x Vector of observed counts in each cell
-#' @param size Total count
-#' @returns The log multinomial coefficient
+#' @param sumx Total count
+#' @returns The vector of log multinomial coefficients
 #' @export
 #' @examples
-#' #' @examples
-#' S0 <- sspace_multinom(4, 6)
-#' S1 <- sspace_multinom(4, 7)
+#' S0 <- matrix(sspace_multinom(4, 6), ncol = 4, byrow = TRUE)
 #' logC0<- apply(S0,1,log_multinom_coef,sumx=6)
-#' logC1<- apply(S1,1,log_multinom_coef,sumx=7)
-#' logC<- outer(logC0,logC1,'+')
 #'
 log_multinom_coef<- function(x,sumx){
   lfactorial(sumx) - sum( lfactorial(x) )
@@ -61,15 +58,20 @@ log_multinom_coef<- function(x,sumx){
 #' @export
 #' @examples
 #' runif_dk_vects(c(3, 4, 2), 10)
-runif_dk_vects <- function(d_k, nsamp, ...){
+runif_dk_vects <- function(d_k, nsamp){
 
   do.call("cbind", lapply(d_k, \(i) matrix(sample_unit_simplexn(i, nsamp), nrow = nsamp, byrow = TRUE)))
 
 }
 
+#' @importFrom stats rgamma
+NULL
+
 #' Sample independently from Dirichlet distributions for each of d_k vectors
+#'
 #' @param nsamp number of samples to take
 #' @param alpha List of vectors of concentration parameters
+#'
 #' @returns A matrix with sum(d_k) columns and nsamp rows
 #' @export
 #' @examples

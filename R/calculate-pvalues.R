@@ -1,4 +1,5 @@
 #' @inherit calc_prob_null_fast
+#' @export
 #'
 
 calc_prob_null <- function(theta_cands, SSpacearr, logC, II) {

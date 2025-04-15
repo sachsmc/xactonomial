@@ -61,7 +61,7 @@
 #' theta is computed, and a step is taken to \code{theta + lrate * gradient}. Then
 #' for the next iteration, a set of \code{chunksize} samples are drawn from a Dirichlet distribution
 #' with parameter \code{ga_gfactor * (theta + ga_lrate * gradient)}. If \code{ga_gfactor = "adapt"} then
-#' it is set to \code{1 / max(theta)} at each iteration. The ITP algorithm \link{itp} is used
+#' it is set to \code{1 / max(theta)} at each iteration. The ITP algorithm \link{itp_root} is used
 #' to find roots of the p-value function as a function of the psi0 value to get confidence intervals.
 #' The maximum number of iterations and epsilon can be controlled via \code{itp_maxit, itp_eps}.
 #'
@@ -79,6 +79,7 @@
 #' @param theta_null_points An optional matrix where each row is a theta value that gives psi(theta) = psi0. If this is supplied and psi0 = one of the boundary points, then a truly exact p-value will be calculated.
 #' @param p_target If a p-value is found that is greater than p_target, terminate the algorithm early.
 #' @param conf_int If TRUE, calculates a confidence interval by inverting the p-value function
+#' @param conf_level A number between 0 and 1, the confidence level.
 #' @param itp_maxit Maximum iterations to use in the ITP algorithm. Only relevant if conf_int = TRUE.
 #' @param itp_eps Epsilon value to use for the ITP algorithm. Only relevant if conf_int = TRUE.
 #' @param maxit Maximum number of iterations of the Monte Carlo procedure
@@ -153,9 +154,10 @@ xactonomial <- function(data, psi, statistic = NULL, psi0 = NULL,
     stop("Please provide the lower and upper limits of the output of the psi function as a vector in psi_limits")
   }
 
-  if(!is.null(psi0) & (psi0 < min(psi_limits) | psi0 > max(psi_limits))) {
+  if(!is.null(psi0)) {
+    if(psi0 < min(psi_limits) | psi0 > max(psi_limits)) {
     stop("psi0 outside the possible range specified by psi_limits.")
-  }
+  }}
 
   if(!is.null(psi0) & (any(abs(psi0 - psi_limits) < 1e-8) & is.null(theta_null_points))) {
 
@@ -271,7 +273,7 @@ xactonomial <- function(data, psi, statistic = NULL, psi0 = NULL,
 
     II.lower <- psi_hat >= psi_obs
 
-    flower.boundary <- max(calc_prob_null_fast(theta_boundary_points$lower, spacelist$Sspace, spacelist$logC,  II.lower)) -
+    flower.boundary <- max(calc_prob_null_fast(theta_null_points, spacelist$Sspace, spacelist$logC,  II.lower)) -
       alpha / 2
   }
   } else {
@@ -292,7 +294,7 @@ xactonomial <- function(data, psi, statistic = NULL, psi0 = NULL,
   if(!is.null(theta_null_points)) {
     if(!is.null(psi0) & abs(psi0 - psi_limits[2]) < 1e-8) {
     II.upper <- psi_hat <= psi_obs
-    fupper.boundary <- max(calc_prob_null_fast(theta_boundary_points$upper, spacelist$Sspace, spacelist$logC,  II.upper)) -
+    fupper.boundary <- max(calc_prob_null_fast(theta_null_points, spacelist$Sspace, spacelist$logC,  II.upper)) -
       alpha / 2
 
     }
@@ -356,7 +358,8 @@ xactonomial <- function(data, psi, statistic = NULL, psi0 = NULL,
 
   res <- list(
     estimate = psi_obs,
-    p.value = switch(alternative, "greater" = pvalues[1], "less" = pvalues[2], "two.sided" = 2 * min(pvalues)),
+    p.value = switch(alternative, "greater" = pvalues[1], "less" = pvalues[2],
+                     "two.sided" = min(1, 2 * min(pvalues))),
     conf.int = confint,
     null.value = c(psi0 = psi0),
     alternative = alternative,
@@ -430,7 +433,7 @@ pvalue_psi0 <- function(psi0, psi, psi_hat, psi_obs, alternative = "two.sided",
     if(isFALSE(null_continue) & isFALSE(alt_continue)) break
 
     this_theta <- theta_cands
-    psi_theta <- if(psi_is_vectorized) psi(theta_cands) else apply(theta_cands, MAR = 1, psi)
+    psi_theta <- if(psi_is_vectorized) psi(theta_cands) else apply(theta_cands, MARGIN = 1, psi)
     null_indicator <- psi_theta <= psi0
 
     if(i %% ga_restart_every == 0) {

@@ -9,20 +9,16 @@ log_multinom_coef(x, sumx)
 \arguments{
 \item{x}{Vector of observed counts in each cell}
 
-\item{size}{Total count}
+\item{sumx}{Total count}
 }
 \value{
-The log multinomial coefficient
+The vector of log multinomial coefficients
 }
 \description{
 Calculate log of multinomial coefficient
 }
 \examples{
-#' @examples
-S0 <- sspace_multinom(4, 6)
-S1 <- sspace_multinom(4, 7)
+S0 <- matrix(sspace_multinom(4, 6), ncol = 4, byrow = TRUE)
 logC0<- apply(S0,1,log_multinom_coef,sumx=6)
-logC1<- apply(S1,1,log_multinom_coef,sumx=7)
-logC<- outer(logC0,logC1,'+')
 
 }
