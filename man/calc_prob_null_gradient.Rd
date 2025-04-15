@@ -4,23 +4,17 @@
 \alias{calc_prob_null_gradient}
 \title{Gradient of the multinomial likelihood sum}
 \usage{
-calc_prob_null_gradient(theta_cands, psi, psi0, SSpacearr, II)
+calc_prob_null_gradient(theta_cands, SSpacearr, II)
 }
 \arguments{
 \item{theta_cands}{A matrix with samples in the rows and the parameters in
 the columns}
-
-\item{psi}{The function of interest mapping parameters to the real line}
-
-\item{psi0}{The null boundary for testing psi <= psi0}
 
 \item{SSpacearr}{A matrix with the sample space for the given size of the
 problem}
 
 \item{II}{logical vector of sample space psi being more extreme than the
 observed psi}
-
-\item{minus1}{Either plus or minus 1}
 }
 \value{
 A matrix the same dimension as theta_cands
@@ -30,7 +24,7 @@ Gradient of the multinomial likelihood sum
 }
 \examples{
 calc_prob_null_gradient(t(c(.28, .32, .4)),
-\(s) s[, 1], .3, 1, matrix(c(2, 2, 1, 1, 2, 2, 0, 3, 2), ncol = 3),
+matrix(c(2, 2, 1, 1, 2, 2, 0, 3, 2), ncol = 3),
 rep(TRUE, 3))
 
 # numerically

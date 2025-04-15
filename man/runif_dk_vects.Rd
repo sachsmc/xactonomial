@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{runif_dk_vects}
 \alias{runif_dk_vects}
-\title{Sample uniformly from d_k simplexes}
+\title{Sample uniformly and independently from d_k simplices}
 \usage{
 runif_dk_vects(d_k, nsamp, ...)
 }
@@ -15,7 +15,7 @@ runif_dk_vects(d_k, nsamp, ...)
 A matrix with sum(d_k) columns and nsamp rows
 }
 \description{
-Sample uniformly from d_k simplexes
+Sample uniformly and independently from d_k simplices
 }
 \examples{
 runif_dk_vects(c(3, 4, 2), 10)

@@ -1,33 +1,15 @@
 use extendr_api::prelude::*;
-use rand::{Rng, thread_rng};
-use rand::distributions::Uniform;
-//use itertools::Itertools;
 
-/// Return a random sample from the d unit simplex
+/// Enumerate the multinomial sample space
+/// @param d The dimension
+/// @param n The sample size
+/// @returns A vector enumerating the sample space, to be converted to a matrix
+/// with d columns and choose(n + d - 1, d - 1) rows
 /// @export
+/// @examples
+/// matrix(sspace_multinom(3, 5), ncol = 3, byrow = TRUE)
 #[extendr]
-fn sample_unit_simplex(d: u32) -> Vec<f64> {
-
-  let mut rng = thread_rng();
-  let unif = Uniform::new(0.0, 1.0);
-  let mut vals: Vec<f64> = (0..d-1).map(|_| rng.sample(&unif)).collect();
-  vals.push(1.0);
-  vals.push(0.0);
-  vals.sort_by(|a, b| a.partial_cmp(b).unwrap());
-
-  let mut valsret = vec![0.0; d as usize];
-  for ii in 1..d+1 {
-    let i = ii as usize;
-    valsret[i-1] = vals[i] - vals[i - 1];
-  }
-  valsret
-
-}
-
-/// Multinomial sample space
-/// @export
-#[extendr]
-fn sspace_multinom_rust(d: u32, n: u32) -> Vec<u32> {
+fn sspace_multinom(d: u32, n: u32) -> Vec<u32> {
 
   let di = d as usize;
   let mut bins = vec![0; di];
@@ -57,10 +39,13 @@ fn sspace_multinom_rust(d: u32, n: u32) -> Vec<u32> {
 }
 
 
-/// Return a random sample from the d unit simplex
-/// @export
+/// Return a single random sample from the d unit simplex
+/// @param d Dimension
+/// @returns A vector of length d
+/// @examples
+/// sample_unit_simplex(3)
 #[extendr(use_rng = true)]
-fn sample_unit_simplex2(d: u32) -> Vec<f64> {
+fn sample_unit_simplex(d: u32) -> Vec<f64> {
 
   let mut vals: Vec<f64> = (0..d-1).map(|_| unsafe { libR_sys::unif_rand() }).collect();
   vals.push(1.0);
@@ -76,8 +61,13 @@ fn sample_unit_simplex2(d: u32) -> Vec<f64> {
 
 }
 
-/// Return n random samples from the d unit simplex
+/// Sample n times from the unit simplex in d dimensions
+/// @param d the dimension
+/// @param n the number of samples to take uniformly in the d space
+/// @returns The grid over Theta, the parameter space. To be converted to a matrix with d columns and nsamp rows
 /// @export
+/// @examples
+/// matrix(sample_unit_simplexn(3, 10), ncol = d, byrow = TRUE)
 #[extendr]
 fn sample_unit_simplexn(d: u32, n: u32) -> Vec<f64> {
 
@@ -85,46 +75,28 @@ fn sample_unit_simplexn(d: u32, n: u32) -> Vec<f64> {
 
   for ii in 0..n {
     let _i = ii as usize;
-    valsret.append(&mut sample_unit_simplex2(d));
+    valsret.append(&mut sample_unit_simplex(d));
   }
   valsret
 
 }
 
-/// random sample from a gamma(k, 1)
-#[extendr(use_rng = true)]
-fn sample_gamma(k: u32) -> f64 {
-
-  let vals: Vec<f64> = (0..k).map(|_| unsafe { libR_sys::unif_rand() }).collect();
-  vals.into_iter().map(|v| -v.ln()).sum::<f64>()
-
-}
-
-/// random sample from dirichlet(n, alpha)
-#[extendr(use_rng = true)]
-fn sample_dirichlet(n: u32, alpha: Vec<f64>, d: u32) -> Vec<f64> {
-
-  let ds = d as usize;
-  let mut valsret: Vec<f64> = Vec::with_capacity((n * d) as usize);
-
-  for _ii in 0..n {
-    let mut yi: Vec<f64> = Vec::with_capacity(ds);
-    let mut yisum = 0.0;
-    for j in 0..ds {
-      let js = j as usize;
-      yi.push(sample_gamma(alpha[js] as u32));
-      yisum = yisum + yi[js];
-    }
-    valsret.append(&mut yi.into_iter().map(|y| y / yisum).collect::<Vec<f64>>());
-  }
-  valsret
-}
-
-
-/// calculate multinomial probabilities
+/// Calculate multinomial probabilities
+/// @param sar The unrolled matrix containing the portion of the sample space to sum over
+/// @param logt The vector of candidate theta values, as sampled from the null space
+/// @param logc The vector of log multinomial coefficients see \link{log_multinom_coef}
+/// @param d The total dimension, sum(d_j)
+/// @param n The sample size
+/// @param nt The number of candidate theta values
+/// @returns A vector of probabilities
 /// @export
+/// @examples
+/// sspace_3_5 <- sspace_multinom(3, 5)
+/// calc_multinom_probs(sspace_3_5, sample_unit_simplexn(3, 10),
+///   apply(matrix(sspace_3_5, ncol = 3, byrow = TRUE), 1, log_multinom_coef, sumx = 5), 3, 5, 10)
+///
 #[extendr]
-fn calc_probs_rust(sar: Vec<f64>, logt: Vec<f64>, logc: Vec<f64>, d: u32, n: u32, nt: u32) -> Vec<f64> {
+fn calc_multinom_probs(sar: Vec<f64>, logt: Vec<f64>, logc: Vec<f64>, d: u32, n: u32, nt: u32) -> Vec<f64> {
 
   let du: usize = d as usize;
   let nu: usize = n as usize;
@@ -161,12 +133,7 @@ fn calc_probs_rust(sar: Vec<f64>, logt: Vec<f64>, logc: Vec<f64>, d: u32, n: u32
 // See corresponding C code in `entrypoint.c`.
 extendr_module! {
     mod xactonomial;
-    fn sample_unit_simplex;
     fn sample_unit_simplexn;
-    fn sample_unit_simplex2;
-    fn calc_probs_rust;
-    fn sample_gamma;
-    fn sample_dirichlet;
-    fn sspace_multinom_rust;
-
+    fn calc_multinom_probs;
+    fn sspace_multinom;
 }

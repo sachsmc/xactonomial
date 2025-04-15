@@ -2,10 +2,21 @@
 % Please edit documentation in R/extendr-wrappers.R
 \name{sample_unit_simplexn}
 \alias{sample_unit_simplexn}
-\title{Return n random samples from the d unit simplex}
+\title{Sample n times from the unit simplex in d dimensions}
 \usage{
 sample_unit_simplexn(d, n)
 }
+\arguments{
+\item{d}{the dimension}
+
+\item{n}{the number of samples to take uniformly in the d space}
+}
+\value{
+The grid over Theta, the parameter space. To be converted to a matrix with d columns and nsamp rows
+}
 \description{
-Return n random samples from the d unit simplex
+Sample n times from the unit simplex in d dimensions
+}
+\examples{
+matrix(sample_unit_simplexn(3, 10), ncol = d, byrow = TRUE)
 }

@@ -19,16 +19,15 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(xactonomial)
-library(parallel)
 ```
 
-Let $T_j$ be distributed $\mbox{Multinomial}_{d_j}(\boldsymbol{\theta}_j, n_j)$ for $j = 1, \ldots, k$ and denote $\boldsymbol{T} = (T_1, \ldots, T_k)$ and $\boldsymbol{\theta} = (\theta_1, \ldots, \theta_k)$. The subscript $d_j$ denotes the dimension of the multinomial. Suppose one is interested in the parameter $\psi(\boldsymbol{\theta}) \in \Theta \subseteq \mathbb{R}$. Given a sample of size $n$ from $\boldsymbol{T}$, one can estimate $\boldsymbol{\theta}$ with the sample proportions as $\hat{\boldsymbol{\theta}}$ and hence $\psi(\hat{\boldsymbol{\theta}})$. It would then be natural to construct a $1 - \alpha$ percent confidence interval for $\psi(\boldsymbol{\theta})$ and calculate a p value for a test of the null hypothesis $H_0: \psi(\boldsymbol{\theta}) \leq \psi_0$. 
+We consider the following problem. Let $T_j$ be distributed $\mbox{Multinomial}(n_j, d_j, \theta_j)$ for $j = 1, \ldots, k$, where $n_j$ is the number of trials, $d_j$ the number of mutually exclusive categories, and $\theta_j$ the vector of $d_j$ probabilities. Denote $\boldsymbol{T} = (T_1, \ldots, T_k)$ and $\boldsymbol{\theta} = (\theta_1, \ldots, \theta_k)$. Suppose one is interested in the parameter $\psi \equiv \tau(\boldsymbol{\theta}) \in \Psi$ where $\Psi$ is a subset of the real line $\mathbb{R}$. Suppose we observe a sample $\boldsymbol{X} = (X_1, \ldots, X_k)$ which is a vector of counts corresponding to the random variable $\boldsymbol{T}$. Let $G(\boldsymbol{X})$ denote a real-valued statistic that defines an ordering of the sample space. A sensible default statistic in this setting is to apply the function defining the parameter of interest to the sample proportions. 
 
-If the functional $\psi$ is complex, or the variance of $\psi(\hat{\boldsymbol{\theta}})$ is otherwise difficult to calculate, then one may consider using the nonparametric bootstrap for inference [@efron1979bootstrap]. However, the bootstrap may perform poorly in small samples, e.g., not having the correct coverage or type I error [@bickel1981some]. Instead we propose a computational approach for computing p values and confidence intervals in this setting. 
+If the function $\tau()$ is complex, or the variance of $\psi(\hat{\boldsymbol{\theta}})$ is otherwise difficult to calculate, then one may consider using the nonparametric bootstrap for inference [@efron1979bootstrap]. However, the bootstrap may perform poorly in small samples, e.g., not having the correct coverage or type I error [@bickel1981some]. Instead we propose a computational approach for computing p values and confidence intervals in this setting. 
 
 Here is a simple illustration of the problem. Let 
 \[
-\psi(\theta_1, \theta_2) = \sum \sqrt(\theta_1, \theta_2), 
+\psi = \tau(\theta_1, \theta_2) = \sum \sqrt(\theta_1, \theta_2), 
 \]
 which is similar to the Bhattacharyya coefficient [@sankhya1946measure]. Suppose we have two samples $T_1$ and $T_2$ each from independent multinomials with dimension 4. The following R code allows us to sample the data and compute $\psi$. 
 
@@ -52,46 +51,12 @@ psi_bc <- function(theta) {
   
 }
 
-true_psi_bc <- psi_bc(true_theta)
+psi_bc(true_theta)
 ```
 
 
 
-How bad is the bootstrap in this situation with different sample sizes? 
-
-
-```{r, cache = TRUE}
-run_one_bs <- function(i, n, psi, true_psi, sample_data) {
-  data <- sample_data(n)
-  
-  bsamps <- replicate(500, {
-    unlist(lapply(data, \(x) {
-      #newx <- c(rmultinom(1, sum(x), prob = x / sum(x)))
-      newx <- table(factor(sample(rep.int(1:length(x), times = x), sum(x), replace = TRUE), 
-             levels = 1:length(x)))
-      
-      newx / sum(newx)
-    })) |> psi()
-  })
-  
-  cib <- quantile(bsamps, c(.025, .975))
-  true_psi >= cib[1] & true_psi <= cib[2]
-    
-}
-
-cand_ns <- do.call(rbind, lapply(seq(10, 30, by = 5), \(i) c(i, i)))
-emp_coverage <- rep(NA, nrow(cand_ns))
-
-for(i in 1:nrow(cand_ns)) {
-  cover_boot <- mclapply(1:1000, run_one_bs, n = cand_ns[i, ], psi = psi_bc, 
-                         true_psi = true_psi_bc, sample_data = sample_data, mc.cores = detectCores() - 4)
-  emp_coverage[i] <- mean(unlist(cover_boot))
-}
-
-knitr::kable(cbind("n in each group" = cand_ns[,1], "bootstrap 95% interval coverage" = emp_coverage))
-```
-
-That does not look too good. Let us see how our method performs. We are going to define the same psi function but vectorized this time. This improves the speed of xactonomial.
+We can do the bootstrap, but it actually performs quite poorly in this situation. We are going to define the same psi function but vectorized this time. This improves the speed of xactonomial.
 
 
 ```{r}
@@ -103,29 +68,23 @@ psi_bc_v <- function(theta) {
   rowSums(sqrt(theta1 * theta2))
   
 }
-
-xmres <- mclapply(1:200, \(i) {
- system.time({
-   data <- sample_data(n = c(10, 12))
-   results <- xactonomial(psi_bc_v, data, alpha = .05, psi_limits = c(0,1), psi0 = .6,
-                          maxit = 10, chunksize = 200, psi_is_vectorized = TRUE)
- })
- results$conf.int
-}, mc.cores = detectCores() - 2)
-
-coverage_exact <- sapply(xmres, \(cint) {
-  true_psi_bc >= cint[1] & true_psi_bc <= cint[2]
-})
-
-mean(coverage_exact)
 ```
 
 
-Much better!
+
+```{r}
+data <- sample_data(n = c(10, 12))
+data
+results <- xactonomial(data, psi_bc_v, psi_limits = c(0,1), conf_int = TRUE, psi0 = .5,
+                          maxit = 50, chunksize = 100, ga_restart_every = 10, itp_eps = .01)
+results
+```
+
+
 
 ## Maximum of parameters
 
-When two of the parameters are equal, the function is nondifferentiable, so bootstrap and other asymptotic methods will fail while our method still works. 
+In this example, $\tau(\theta) = \max(\theta)$. When two of the parameters are equal, the function is nondifferentiable, so bootstrap and other asymptotic methods will fail while our method still works. 
 
 ```{r}
 psi_causal <- function(pp) {
@@ -141,24 +100,14 @@ sample_data2 <- function(n) {
   list(rmultinom(1, n, prob = c(.4, .4, .2))[, 1])
   
 }
-cover_boot <- mclapply(1:200, run_one_bs, n = c(20), psi = psi_causal, 
-                         true_psi = true_psi_causal, sample_data = sample_data2, mc.cores = detectCores() - 4)
-mean(unlist(cover_boot))
 
-xmres <- mclapply(1:200, \(i) {
- #system.time({
-   data <- sample_data2(n = c(20))
-   results <- xactonomial(psi_causal, data, alpha = .05, psi_limits = c(1/3,1), maxit = 100, chunksize = 100)
- #})
- results$conf.int
-}, mc.cores = detectCores() - 2)
 
-coverage_exact <- sapply(xmres, \(cint) {
-  true_psi_causal >= cint[1] & true_psi_causal <= cint[2]
-})
+data <- sample_data2(n = c(60))
+data
+results <- xactonomial(data, psi_causal, psi_limits = c(1/3,1), psi0 = .55,
+                          maxit = 100, chunksize = 1000, itp_eps = .01)
 
-mean(coverage_exact)
-
+results
 ```
 
 

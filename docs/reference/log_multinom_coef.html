@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">xactonomial</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -69,8 +69,11 @@
 <span class="r-in"><span><span class="va">S0</span> <span class="op">&lt;-</span> <span class="fu"><a href="sspace_multinom.html">sspace_multinom</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">6</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">S1</span> <span class="op">&lt;-</span> <span class="fu"><a href="sspace_multinom.html">sspace_multinom</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">7</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">logC0</span><span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">S0</span>,<span class="fl">1</span>,<span class="va">log_multinom_coef</span>,sumx<span class="op">=</span><span class="fl">6</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in apply(S0, 1, log_multinom_coef, sumx = 6):</span> dim(X) must have a positive length</span>
 <span class="r-in"><span><span class="va">logC1</span><span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">S1</span>,<span class="fl">1</span>,<span class="va">log_multinom_coef</span>,sumx<span class="op">=</span><span class="fl">7</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in apply(S1, 1, log_multinom_coef, sumx = 7):</span> dim(X) must have a positive length</span>
 <span class="r-in"><span><span class="va">logC</span><span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/outer.html" class="external-link">outer</a></span><span class="op">(</span><span class="va">logC0</span>,<span class="va">logC1</span>,<span class="st">'+'</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'logC0' not found</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
@@ -79,7 +82,7 @@
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Michael C Sachs, Michael P Fay.</p>
+  <p>Developed by Michael C Sachs, Michael P Fay, Erin E Gabriel.</p>
 </div>
 
 <div class="pkgdown-footer-right">

@@ -5,12 +5,12 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Exact Inference for Real-Valued Functionals of k-Sample Multinomial Parameters • xactonomial</title>
+<title>Improved Small-Sample Inference for Real-Valued Functions of Multinomial Parameters from k-Samples • xactonomial</title>
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Exact Inference for Real-Valued Functionals of k-Sample Multinomial Parameters">
+<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Improved Small-Sample Inference for Real-Valued Functions of Multinomial Parameters from k-Samples">
 <meta name="description" content="We consider the k sample multinomial problem where we observe k vectors (possibly of different lengths), each representing an independent multinomial random vector. For a given function psi which takes in the concatenated vector of multinomial probabilities and outputs a real number, this is a Monte Carlo estimation procedure of an exact p-value and confidence interval. The resulting inference is valid even in small samples, and when the parameter is on the boundary, and when the function is nondifferentiable at the parameter value, all situations where asymptotic methods and the bootstrap would fail.">
 <meta property="og:description" content="We consider the k sample multinomial problem where we observe k vectors (possibly of different lengths), each representing an independent multinomial random vector. For a given function psi which takes in the concatenated vector of multinomial probabilities and outputs a real number, this is a Monte Carlo estimation procedure of an exact p-value and confidence interval. The resulting inference is valid even in small samples, and when the parameter is on the boundary, and when the function is nondifferentiable at the parameter value, all situations where asymptotic methods and the bootstrap would fail.">
 </head>
@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">xactonomial</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -82,7 +82,7 @@
 <span>   <span class="op">}</span></span>
 <span></span>
 <span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>T1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>,<span class="fl">1</span>,<span class="fl">2</span>,<span class="fl">1</span><span class="op">)</span>, T2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span>,<span class="fl">3</span>,<span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="reference/xactonomial.html">xactonomial</a></span><span class="op">(</span><span class="va">psi_ba</span>, <span class="va">data</span>, psi_limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>, maxit <span class="op">=</span> <span class="fl">5</span>, chunksize <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="reference/xactonomial.html">xactonomial</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">psi_ba</span>, psi_limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>, maxit <span class="op">=</span> <span class="fl">5</span>, chunksize <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
@@ -114,6 +114,7 @@
 <ul class="list-unstyled">
 <li>Michael C Sachs <br><small class="roles"> Author, maintainer </small>  </li>
 <li>Michael P Fay <br><small class="roles"> Author </small>  </li>
+<li>Erin E Gabriel <br><small class="roles"> Author </small>  </li>
 </ul>
 </div>
 
@@ -124,7 +125,7 @@
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Michael C Sachs, Michael P Fay.</p>
+  <p>Developed by Michael C Sachs, Michael P Fay, Erin E Gabriel.</p>
 </div>
 
 <div class="pkgdown-footer-right">

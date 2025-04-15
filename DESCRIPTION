@@ -1,15 +1,17 @@
 Package: xactonomial
 Type: Package
-Title: Exact Inference for Real-Valued Functionals of k-Sample Multinomial Parameters
-Version: 0.4.1
-Date: 2025-01-08
+Title: Improved Small-Sample Inference for Real-Valued Functions of Multinomial Parameters from k-Samples 
+Version: 1.0.0
+Date: 2025-04-14
 Authors@R: 
     c(person(given = "Michael C",
              family = "Sachs",
              role = c("aut", "cre"),
              email = "sachsmc@gmail.com"),
       person(given = "Michael P", 
-             family = "Fay", role = c("aut")))
+             family = "Fay", role = c("aut")), 
+      person(given = "Erin E", 
+             family = "Gabriel", role = c("aut")))
 URL: https://github.com/sachsmc/xactonomial
 BugReports: https://github.com/sachsmc/xactonomial/issues
 Description: We consider the k sample multinomial problem where we observe k vectors
@@ -23,11 +25,12 @@ Description: We consider the k sample multinomial problem where we observe k vec
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
+SystemRequirements: Cargo (Rust's package manager), rustc >= 1.70
 Suggests: 
     knitr,
     rmarkdown,
     testthat (>= 3.0.0)
 VignetteBuilder: knitr
 RoxygenNote: 7.3.2
-Config/rextendr/version: 0.3.1.9000
+Config/rextendr/version: 0.3.1.9001
 Config/testthat/edition: 3

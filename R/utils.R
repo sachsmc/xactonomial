@@ -4,18 +4,18 @@
 #' This function enumerates all possible vectors of length \eqn{d} of counts of
 #' each outcome for \eqn{n} trials, i.e., the sample space. The result is output
 #' as a matrix with \eqn{d} columns where each row represents a possible
-#' observation.
+#' observation. See \link{sspace_multinom} for a faster implementation using Rust.
 #'
 #' @param d Dimension
 #' @param n Size
 #' @returns A matrix with d columns
 #' @export
 #' @examples
-#' d4s <- sspace_multinom(4, 8)
+#' d4s <- sspace_multinom_slow(4, 8)
 #' stopifnot(abs(sum(apply(d4s, 1, dmultinom, prob = rep(.25, 4))) - 1) < 1e-12)
 #'
 
-sspace_multinom1 <- function(d, n) {
+sspace_multinom_slow <- function(d, n) {
 
   if(d == 2) {
 
@@ -26,7 +26,7 @@ sspace_multinom1 <- function(d, n) {
     res <- NULL
     for(i in 0:n) {
 
-      res <- rbind(res, cbind(i, sspace_multinom(d - 1, n - i)))
+      res <- rbind(res, cbind(i, sspace_multinom_slow(d - 1, n - i)))
 
     }
     res
@@ -34,60 +34,6 @@ sspace_multinom1 <- function(d, n) {
   }
 
 }
-
-
-sspace_multinom2 <- function(d, n) {
-
-  ncomb <- choose(d + n - 1, d - 1)
-  binss <- matrix(rep(c(n, rep(0, d - 1)), ncomb), nrow = ncomb, byrow = TRUE)
-  bins <- c(n, rep(0, d - 1))
-  i <- 2
-  repeat{
-    if(bins[d] == n) break
-    if(bins[1] > 0) {
-      bins[1] <- bins[1] - 1
-      bins[2] <- bins[2] + 1
-      #i <- i + 1
-    } else {
-      nz <- 2
-      while(bins[nz] == 0) {
-        nz <- nz + 1
-      }
-        bins[1] <- bins[nz] - 1
-        bins[nz + 1] <- bins[nz + 1] + 1
-        bins[nz] <- 0
-        #i <- i + 1
-      }
-    binss[i, ] <- bins
-    i <- i + 1
-  }
-
-  binss
-
-}
-
-
-
-#' Get a matrix of indices for all possible combinations of vectors of lengths
-#'
-#' This is basically the same as \link[base]{expand.grid}, but faster for integers
-#'
-#' @param lengths A vector with the lengths of each index to expand
-#' @returns A matrix with length(lengths) columns and prod(lengths) rows
-#' @export
-#' @examples
-#' expand_index(c(2, 3, 4))
-#' ## the same as
-#' expand.grid(1:2, 1:3, 1:4)
-#'
-expand_index <- function(lengths) {
-
-  do.call(expand.grid, lapply(lengths, seq_len)) |>
-    as.matrix()
-
-}
-
-
 
 
 #' Calculate log of multinomial coefficient
@@ -108,30 +54,7 @@ log_multinom_coef<- function(x,sumx){
 }
 
 
-
-
-#' Sample from the unit simplex in d dimensions
-#' @param d the dimension
-#' @param nsamp the number of samples to take uniformly in the d space
-#' @return The grid over Theta, the parameter space. A matrix with d columns and nsamp rows
-#' @export
-#' @examples
-#' get_theta_random(3, 10)
-#'
-
-get_theta_random <- function(d = 4, nsamp = 75) {
-
-  # x1 <- matrix(runif(nsamp * (d - 1)), ncol = d - 1)
-  # g2 <- unique(t(apply(x1, 1, \(x) {
-  #   diff(sort(c(0, x, 1)))
-  # })))
-
-  matrix(sample_unit_simplexn(d, nsamp), nrow = nsamp, ncol = d, byrow = TRUE)
-
-}
-
-
-#' Sample uniformly from d_k simplexes
+#' Sample uniformly and independently from d_k simplices
 #' @param d_k vector of vector lengths
 #' @param nsamp number of samples to take
 #' @returns A matrix with sum(d_k) columns and nsamp rows
@@ -140,11 +63,11 @@ get_theta_random <- function(d = 4, nsamp = 75) {
 #' runif_dk_vects(c(3, 4, 2), 10)
 runif_dk_vects <- function(d_k, nsamp, ...){
 
-  do.call("cbind", lapply(d_k, \(i) get_theta_random(i, nsamp)))
+  do.call("cbind", lapply(d_k, \(i) matrix(sample_unit_simplexn(i, nsamp), nrow = nsamp, byrow = TRUE)))
 
 }
 
-#' Sample from a Dirichlet distribution for each of d_k vectors
+#' Sample independently from Dirichlet distributions for each of d_k vectors
 #' @param nsamp number of samples to take
 #' @param alpha List of vectors of concentration parameters
 #' @returns A matrix with sum(d_k) columns and nsamp rows
@@ -157,7 +80,6 @@ rdirich_dk_vects <- function(nsamp, alpha) {
   d_k <- sapply(alpha, length)
   do.call("cbind", lapply(1:length(d_k), \(i) {
 
-    #sample_dirichlet(nsamp, ceiling(alpha[[i]]))
     gsamps <- rgamma(nsamp * length(alpha[[i]]), shape = rep(alpha[[i]], each = nsamp))
     yis <- matrix(gsamps, nrow = nsamp)
     yis / rowSums(yis)
@@ -264,13 +186,21 @@ itp_root <- function(f, a, b, k1 = .1, k2 = 2, n0 = 1,
 
 
 
-#' Calculate combinations of multinomials
+#' Calculate combinations of multinomial vectors
 #'
+#' Given X and Y, both matrices where the rows are counts of multinomial trials,
+#' produce all combinations rowwise, and calculate the log multinomial
+#' coefficients for the combination.
 #' @param X Matrix 1
 #' @param Y Matrix 2
-#' @returns A list of arrays
+#' @returns A list containing Sspace, the sample space (vectors of counts), and
+#'  logC, a vector of the log multinomial coefficients.
 #'
 #' @export
+#' @examples
+#' slist_2_3 <- combinate(matrix(sspace_multinom(2, 5), ncol = 2, byrow = TRUE),
+#'    matrix(sspace_multinom(3, 6), ncol = 3, byrow = TRUE))
+#'
 combinate <- function(X, Y) {
   Yi <- rep(1:nrow(Y), rep.int(nrow(X), nrow(Y)))
   Xi <- rep(1:nrow(X), times = ceiling(length(Yi)/nrow(X)))
@@ -283,18 +213,24 @@ combinate <- function(X, Y) {
   logCX <- lfactorial(sumX) - rowSums(apply(newX, 2, lfactorial))
   logCY <- lfactorial(sumY) - rowSums(apply(newY, 2, lfactorial))
 
-  list(Sspace = cbind(newX, newY), Sprobs = cbind(newX / sumX, newY / sumY), logC = logCX + logCY)
+  list(Sspace = cbind(newX, newY), logC = logCX + logCY)
 
 }
 
 
-#' Like combinate but add to existing
+#' Like \link{combinate} but adds on to previous call
 #'
-#' @param X A list as returned by combinate
+#' @param X A list containing the elements Sspace (matrix), and logC (vector)
 #' @param Y Matrix 2
-#' @returns A list of arrays
+#' @returns A list containing Sspace, the sample space (vectors of counts), and
+#'  logC, a vector of the log multinomial coefficients.
 #'
 #' @export
+#' @examples
+#' slist_2_3 <- combinate(matrix(sspace_multinom(2, 5), ncol = 2, byrow = TRUE),
+#'    matrix(sspace_multinom(3, 6), ncol = 3, byrow = TRUE))
+#'
+#' sl_2_3_4 <- combinate2(slist_2_3, matrix(sspace_multinom(4, 3), ncol = 4, byrow = TRUE))
 combinate2 <- function(X, Y) {
   Yi <- rep(1:nrow(Y), rep.int(nrow(X$Sspace), nrow(Y)))
   Xi <- rep(1:nrow(X$Sspace), times = ceiling(length(Yi)/nrow(X$Sspace)))
@@ -304,6 +240,6 @@ combinate2 <- function(X, Y) {
   sumY <- sum(newY[1,])
   logCY <- lfactorial(sumY) - rowSums(apply(newY, 2, lfactorial))
 
-  list(Sspace = cbind(newX, newY), Sprobs = cbind(X$Sprobs[Xi,], newY / sumY), logC = X$logC[Xi] + logCY)
+  list(Sspace = cbind(newX, newY), logC = X$logC[Xi] + logCY)
 
 }

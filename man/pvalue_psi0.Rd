@@ -21,43 +21,60 @@ pvalue_psi0(
   ga = FALSE,
   ga_gfactor = 1,
   ga_lrate = 0.01,
-  ga_restart_every = 10
+  ga_restart_every = 10,
+  warn = TRUE
 )
 }
 \arguments{
-\item{psi0}{The null value}
+\item{psi0}{The null hypothesis value for the parameter being tested.}
 
-\item{psi}{The function of interest}
+\item{psi}{Function that takes in parameters and outputs a real
+valued number for each parameter. Can be vectorized rowwise for a matrix or not.}
 
 \item{psi_hat}{The vector of psi values at each element of the sample space}
 
-\item{psi_obs}{The observed estimate}
+\item{psi_obs}{The observed estimate at the given data}
 
-\item{maxit}{Maximum iterations}
+\item{alternative}{a character string specifying the alternative hypothesis, must be one of "two.sided" (default), "greater" or "less"}
 
-\item{chunksize}{Chunk size}
+\item{maxit}{Maximum number of iterations of the Monte Carlo procedure}
 
-\item{SSpacearr}{The sample space array}
+\item{chunksize}{The number of samples to take from the parameter space at each iteration}
 
-\item{logC}{The log multinomial coefficient}
+\item{p_target}{If a p-value is found that is greater than p_target, terminate the algorithm early.}
+
+\item{SSpacearr}{The sample space matrix}
+
+\item{logC}{The log multinomial coefficients for each row of the sample space}
 
 \item{d_k}{The vector of dimensions}
 
-\item{theta_sampler}{Sampler}
+\item{psi_is_vectorized}{Is psi vectorized by row?}
 
-\item{lower}{Do a one sided test of the null that it is less than psi0, otherwise greater.}
+\item{theta_sampler}{Function to take samples from the \eqn{Theta} parameter space. Default is \link{runif_dk_vects}.}
 
-\item{target}{Stop the algorithm if p >= target (for speed)}
+\item{ga}{Logical, if TRUE, uses gradient ascent.}
 
-\item{psi_v}{Is psi vectorized by row?}
+\item{ga_gfactor}{Concentration parameter scale in the gradient ascent algorithm. A number or "adapt"}
 
-\item{gradient_ascent}{Do ga?}
+\item{ga_lrate}{The gradient ascent learning rate}
 
-\item{gamma}{Parameter to determine concentration of dirichlet, only relevant if gradient_ascent = TRUE}
+\item{ga_restart_every}{Restart the gradient ascent after this number of iterations at a sample from}
+
+\item{warn}{If TRUE, will give a warning if no samples from the null space are found}
 }
 \value{
-A p-value
+A vector with two p-values, one for the lower, and one for the greater
 }
 \description{
 Compute a p value for the test of psi <= psi0 (lower = TRUE) or psi >= psi0 (lower = FALSE)
+}
+\examples{
+
+sspace_3_5 <- matrix(sspace_multinom(3, 5), ncol = 3, byrow = TRUE)
+psi <- function(theta) max(theta)
+logC <- apply(sspace_3_5, 1, log_multinom_coef, sumx = 5)
+psi_hat <- apply(sspace_3_5, 1, \(x) psi(x / sum(x)))
+pvalue_psi0(.3, psi, psi_hat, .4, maxit = 10, chunksize = 100,
+ p_target = 1, SSpacearr = sspace_3_5, logC = logC, d_k = 3, warn = FALSE)
 }

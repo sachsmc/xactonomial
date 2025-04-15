@@ -34,6 +34,6 @@ psi_ba <- function(theta) {
    }
 
 data <- list(T1 = c(2,1,2,1), T2 = c(0,1,3,3))
-xactonomial(psi_ba, data, psi_limits = c(0, 1), maxit = 5, chunksize = 20)
+xactonomial(data, psi_ba, psi_limits = c(0, 1), maxit = 5, chunksize = 20)
 ```
 

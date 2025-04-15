@@ -2,10 +2,22 @@
 % Please edit documentation in R/extendr-wrappers.R
 \name{sspace_multinom}
 \alias{sspace_multinom}
-\title{sample space of multinomial}
+\title{Enumerate the multinomial sample space}
 \usage{
 sspace_multinom(d, n)
 }
+\arguments{
+\item{d}{The dimension}
+
+\item{n}{The sample size}
+}
+\value{
+A vector enumerating the sample space, to be converted to a matrix
+with d columns and choose(n + d - 1, d - 1) rows
+}
 \description{
-sample space of multinomial
+Enumerate the multinomial sample space
+}
+\examples{
+matrix(sspace_multinom(3, 5), ncol = 3, byrow = TRUE)
 }

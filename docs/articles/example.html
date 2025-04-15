@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">xactonomial</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -66,41 +66,43 @@
     
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/sachsmc/xactonomial" class="external-link">xactonomial</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">parallel</span><span class="op">)</span></span></code></pre></div>
-<p>Let
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/sachsmc/xactonomial" class="external-link">xactonomial</a></span><span class="op">)</span></span></code></pre></div>
+<p>We consider the following problem. Let
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>T</mi><mi>j</mi></msub><annotation encoding="application/x-tex">T_j</annotation></semantics></math>
 be distributed
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mtext mathvariant="normal">Multinomial</mtext><msub><mi>d</mi><mi>j</mi></msub></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>𝛉</mi><mi>j</mi></msub><mo>,</mo><msub><mi>n</mi><mi>j</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mbox{Multinomial}_{d_j}(\boldsymbol{\theta}_j, n_j)</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">Multinomial</mtext><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>n</mi><mi>j</mi></msub><mo>,</mo><msub><mi>d</mi><mi>j</mi></msub><mo>,</mo><msub><mi>θ</mi><mi>j</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mbox{Multinomial}(n_j, d_j, \theta_j)</annotation></semantics></math>
 for
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>j</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>k</mi></mrow><annotation encoding="application/x-tex">j = 1, \ldots, k</annotation></semantics></math>
-and denote
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>j</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>k</mi></mrow><annotation encoding="application/x-tex">j = 1, \ldots, k</annotation></semantics></math>,
+where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>n</mi><mi>j</mi></msub><annotation encoding="application/x-tex">n_j</annotation></semantics></math>
+is the number of trials,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>d</mi><mi>j</mi></msub><annotation encoding="application/x-tex">d_j</annotation></semantics></math>
+the number of mutually exclusive categories, and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>θ</mi><mi>j</mi></msub><annotation encoding="application/x-tex">\theta_j</annotation></semantics></math>
+the vector of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>d</mi><mi>j</mi></msub><annotation encoding="application/x-tex">d_j</annotation></semantics></math>
+probabilities. Denote
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝐓</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>T</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>T</mi><mi>k</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\boldsymbol{T} = (T_1, \ldots, T_k)</annotation></semantics></math>
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝛉</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>θ</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>θ</mi><mi>k</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\boldsymbol{\theta} = (\theta_1, \ldots, \theta_k)</annotation></semantics></math>.
-The subscript
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>d</mi><mi>j</mi></msub><annotation encoding="application/x-tex">d_j</annotation></semantics></math>
-denotes the dimension of the multinomial. Suppose one is interested in
-the parameter
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ψ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛉</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>∈</mo><mi>Θ</mi><mo>⊆</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">\psi(\boldsymbol{\theta}) \in \Theta \subseteq \mathbb{R}</annotation></semantics></math>.
-Given a sample of size
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
-from
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐓</mi><annotation encoding="application/x-tex">\boldsymbol{T}</annotation></semantics></math>,
-one can estimate
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛉</mi><annotation encoding="application/x-tex">\boldsymbol{\theta}</annotation></semantics></math>
-with the sample proportions as
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>𝛉</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{\boldsymbol{\theta}}</annotation></semantics></math>
-and hence
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ψ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mover><mi>𝛉</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\psi(\hat{\boldsymbol{\theta}})</annotation></semantics></math>.
-It would then be natural to construct a
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><mi>α</mi></mrow><annotation encoding="application/x-tex">1 - \alpha</annotation></semantics></math>
-percent confidence interval for
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ψ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛉</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\psi(\boldsymbol{\theta})</annotation></semantics></math>
-and calculate a p value for a test of the null hypothesis
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mn>0</mn></msub><mo>:</mo><mi>ψ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛉</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>≤</mo><msub><mi>ψ</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">H_0: \psi(\boldsymbol{\theta}) \leq \psi_0</annotation></semantics></math>.</p>
-<p>If the functional
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ψ</mi><annotation encoding="application/x-tex">\psi</annotation></semantics></math>
+Suppose one is interested in the parameter
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ψ</mi><mo>≡</mo><mi>τ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝛉</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>∈</mo><mi>Ψ</mi></mrow><annotation encoding="application/x-tex">\psi \equiv \tau(\boldsymbol{\theta}) \in \Psi</annotation></semantics></math>
+where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Ψ</mi><annotation encoding="application/x-tex">\Psi</annotation></semantics></math>
+is a subset of the real line
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℝ</mi><annotation encoding="application/x-tex">\mathbb{R}</annotation></semantics></math>.
+Suppose we observe a sample
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝐗</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>X</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>X</mi><mi>k</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\boldsymbol{X} = (X_1, \ldots, X_k)</annotation></semantics></math>
+which is a vector of counts corresponding to the random variable
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐓</mi><annotation encoding="application/x-tex">\boldsymbol{T}</annotation></semantics></math>.
+Let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>G</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝐗</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">G(\boldsymbol{X})</annotation></semantics></math>
+denote a real-valued statistic that defines an ordering of the sample
+space. A sensible default statistic in this setting is to apply the
+function defining the parameter of interest to the sample
+proportions.</p>
+<p>If the function
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>τ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\tau()</annotation></semantics></math>
 is complex, or the variance of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ψ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mover><mi>𝛉</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\psi(\hat{\boldsymbol{\theta}})</annotation></semantics></math>
 is otherwise difficult to calculate, then one may consider using the
@@ -110,8 +112,8 @@ samples, e.g., not having the correct coverage or type I error <span class="cita
 computational approach for computing p values and confidence intervals
 in this setting.</p>
 <p>Here is a simple illustration of the problem. Let
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ψ</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>θ</mi><mn>1</mn></msub><mo>,</mo><msub><mi>θ</mi><mn>2</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>∑</mo><msqrt><mi>(</mi></msqrt><msub><mi>θ</mi><mn>1</mn></msub><mo>,</mo><msub><mi>θ</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
-\psi(\theta_1, \theta_2) = \sum \sqrt(\theta_1, \theta_2), 
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ψ</mi><mo>=</mo><mi>τ</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>θ</mi><mn>1</mn></msub><mo>,</mo><msub><mi>θ</mi><mn>2</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>∑</mo><msqrt><mi>(</mi></msqrt><msub><mi>θ</mi><mn>1</mn></msub><mo>,</mo><msub><mi>θ</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\psi = \tau(\theta_1, \theta_2) = \sum \sqrt(\theta_1, \theta_2), 
 </annotation></semantics></math> which is similar to the Bhattacharyya
 coefficient <span class="citation">(Bhattacharyya 1946)</span>. Suppose
 we have two samples
@@ -141,70 +143,12 @@ code allows us to sample the data and compute
 <span>  </span>
 <span><span class="op">}</span></span>
 <span></span>
-<span><span class="va">true_psi_bc</span> <span class="op">&lt;-</span> <span class="fu">psi_bc</span><span class="op">(</span><span class="va">true_theta</span><span class="op">)</span></span></code></pre></div>
-<p>How bad is the bootstrap in this situation with different sample
-sizes?</p>
+<span><span class="fu">psi_bc</span><span class="op">(</span><span class="va">true_theta</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 0.8464102</span></span></code></pre></div>
+<p>We can do the bootstrap, but it actually performs quite poorly in
+this situation. We are going to define the same psi function but
+vectorized this time. This improves the speed of xactonomial.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">run_one_bs</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">i</span>, <span class="va">n</span>, <span class="va">psi</span>, <span class="va">true_psi</span>, <span class="va">sample_data</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">data</span> <span class="op">&lt;-</span> <span class="fu">sample_data</span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
-<span>  </span>
-<span>  <span class="va">bsamps</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">replicate</a></span><span class="op">(</span><span class="fl">500</span>, <span class="op">{</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">data</span>, \<span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
-<span>      <span class="co">#newx &lt;- c(rmultinom(1, sum(x), prob = x / sum(x)))</span></span>
-<span>      <span class="va">newx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep.int</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>, times <span class="op">=</span> <span class="va">x</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, </span>
-<span>             levels <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span>      </span>
-<span>      <span class="va">newx</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">newx</span><span class="op">)</span></span>
-<span>    <span class="op">}</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu">psi</span><span class="op">(</span><span class="op">)</span></span>
-<span>  <span class="op">}</span><span class="op">)</span></span>
-<span>  </span>
-<span>  <span class="va">cib</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html" class="external-link">quantile</a></span><span class="op">(</span><span class="va">bsamps</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.025</span>, <span class="fl">.975</span><span class="op">)</span><span class="op">)</span></span>
-<span>  <span class="va">true_psi</span> <span class="op">&gt;=</span> <span class="va">cib</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="op">&amp;</span> <span class="va">true_psi</span> <span class="op">&lt;=</span> <span class="va">cib</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span></span>
-<span>    </span>
-<span><span class="op">}</span></span>
-<span></span>
-<span><span class="va">cand_ns</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">30</span>, by <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>, \<span class="op">(</span><span class="va">i</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">i</span>, <span class="va">i</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">emp_coverage</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">cand_ns</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">cand_ns</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">cover_boot</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/parallel/mclapply.html" class="external-link">mclapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">1000</span>, <span class="va">run_one_bs</span>, n <span class="op">=</span> <span class="va">cand_ns</span><span class="op">[</span><span class="va">i</span>, <span class="op">]</span>, psi <span class="op">=</span> <span class="va">psi_bc</span>, </span>
-<span>                         true_psi <span class="op">=</span> <span class="va">true_psi_bc</span>, sample_data <span class="op">=</span> <span class="va">sample_data</span>, mc.cores <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fl">4</span><span class="op">)</span></span>
-<span>  <span class="va">emp_coverage</span><span class="op">[</span><span class="va">i</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="va">cover_boot</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="op">}</span></span>
-<span></span>
-<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="st">"n in each group"</span> <span class="op">=</span> <span class="va">cand_ns</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span>, <span class="st">"bootstrap 95% interval coverage"</span> <span class="op">=</span> <span class="va">emp_coverage</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<table class="table">
-<thead><tr class="header">
-<th align="right">n in each group</th>
-<th align="right">bootstrap 95% interval coverage</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td align="right">10</td>
-<td align="right">0.536</td>
-</tr>
-<tr class="even">
-<td align="right">15</td>
-<td align="right">0.640</td>
-</tr>
-<tr class="odd">
-<td align="right">20</td>
-<td align="right">0.694</td>
-</tr>
-<tr class="even">
-<td align="right">25</td>
-<td align="right">0.728</td>
-</tr>
-<tr class="odd">
-<td align="right">30</td>
-<td align="right">0.775</td>
-</tr>
-</tbody>
-</table>
-<p>That does not look too good. Let us see how our method performs. We
-are going to define the same psi function but vectorized this time. This
-improves the speed of xactonomial.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">psi_bc_v</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">theta</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  </span>
@@ -212,30 +156,36 @@ improves the speed of xactonomial.</p>
 <span>  <span class="va">theta2</span> <span class="op">&lt;-</span> <span class="va">theta</span><span class="op">[</span>,<span class="fl">5</span><span class="op">:</span><span class="fl">8</span>, drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="va">theta1</span> <span class="op">*</span> <span class="va">theta2</span><span class="op">)</span><span class="op">)</span></span>
 <span>  </span>
-<span><span class="op">}</span></span>
-<span></span>
-<span><span class="va">xmres</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/parallel/mclapply.html" class="external-link">mclapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">200</span>, \<span class="op">(</span><span class="va">i</span><span class="op">)</span> <span class="op">{</span></span>
-<span> <span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="op">{</span></span>
-<span>   <span class="va">data</span> <span class="op">&lt;-</span> <span class="fu">sample_data</span><span class="op">(</span>n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
-<span>   <span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/xactonomial.html">xactonomial</a></span><span class="op">(</span><span class="va">psi_bc_v</span>, <span class="va">data</span>, alpha <span class="op">=</span> <span class="fl">.05</span>, psi_limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span><span class="op">)</span>, </span>
-<span>                          maxit <span class="op">=</span> <span class="fl">50</span>, chunksize <span class="op">=</span> <span class="fl">500</span>, psi_is_vectorized <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span> <span class="op">}</span><span class="op">)</span></span>
-<span> <span class="va">results</span><span class="op">$</span><span class="va">conf.int</span></span>
-<span><span class="op">}</span>, mc.cores <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fl">2</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">coverage_exact</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="va">xmres</span>, \<span class="op">(</span><span class="va">cint</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">true_psi_bc</span> <span class="op">&gt;=</span> <span class="va">cint</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="op">&amp;</span> <span class="va">true_psi_bc</span> <span class="op">&lt;=</span> <span class="va">cint</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span></span>
-<span><span class="op">}</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">coverage_exact</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.995</span></span></code></pre></div>
-<p>Much better!</p>
+<span><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu">sample_data</span><span class="op">(</span>n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">12</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">data</span></span>
+<span><span class="co">#&gt; $T1</span></span>
+<span><span class="co">#&gt; [1] 2 3 4 1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $T2</span></span>
+<span><span class="co">#&gt; [1] 0 0 6 6</span></span>
+<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/xactonomial.html">xactonomial</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">psi_bc_v</span>, psi_limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span><span class="op">)</span>, conf_int <span class="op">=</span> <span class="cn">TRUE</span>, psi0 <span class="op">=</span> <span class="fl">.5</span>,</span>
+<span>                          maxit <span class="op">=</span> <span class="fl">50</span>, chunksize <span class="op">=</span> <span class="fl">100</span>, ga_restart_every <span class="op">=</span> <span class="fl">10</span>, itp_eps <span class="op">=</span> <span class="fl">.01</span><span class="op">)</span></span>
+<span><span class="va">results</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;  Monte-Carlo multinomial test</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; data:  data</span></span>
+<span><span class="co">#&gt; p-value = 0.07667</span></span>
+<span><span class="co">#&gt; alternative hypothesis: true psi0 is not equal to 0.5</span></span>
+<span><span class="co">#&gt; 95 percent confidence interval:</span></span>
+<span><span class="co">#&gt;  0.4950000 0.9944113</span></span>
+<span><span class="co">#&gt; sample estimates:</span></span>
+<span><span class="co">#&gt; [1] 0.6708204</span></span></code></pre></div>
 <div class="section level2">
 <h2 id="maximum-of-parameters">Maximum of parameters<a class="anchor" aria-label="anchor" href="#maximum-of-parameters"></a>
 </h2>
-<p>When two of the parameters are equal, the function is
-nondifferentiable, so bootstrap and other asymptotic methods will fail
-while our method still works.</p>
+<p>In this example,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>τ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>max</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\tau(\theta) = \max(\theta)</annotation></semantics></math>.
+When two of the parameters are equal, the function is nondifferentiable,
+so bootstrap and other asymptotic methods will fail while our method
+still works.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">psi_causal</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">pp</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  </span>
@@ -250,25 +200,26 @@ while our method still works.</p>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Multinom.html" class="external-link">rmultinom</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">n</span>, prob <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.4</span>, <span class="fl">.4</span>, <span class="fl">.2</span><span class="op">)</span><span class="op">)</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span><span class="op">)</span></span>
 <span>  </span>
 <span><span class="op">}</span></span>
-<span><span class="va">cover_boot</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/parallel/mclapply.html" class="external-link">mclapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">200</span>, <span class="va">run_one_bs</span>, n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span><span class="op">)</span>, psi <span class="op">=</span> <span class="va">psi_causal</span>, </span>
-<span>                         true_psi <span class="op">=</span> <span class="va">true_psi_causal</span>, sample_data <span class="op">=</span> <span class="va">sample_data2</span>, mc.cores <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fl">4</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="va">cover_boot</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.84</span></span>
 <span></span>
-<span><span class="va">xmres</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/parallel/mclapply.html" class="external-link">mclapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">200</span>, \<span class="op">(</span><span class="va">i</span><span class="op">)</span> <span class="op">{</span></span>
-<span> <span class="co">#system.time({</span></span>
-<span>   <span class="va">data</span> <span class="op">&lt;-</span> <span class="fu">sample_data2</span><span class="op">(</span>n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span><span class="op">)</span><span class="op">)</span></span>
-<span>   <span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/xactonomial.html">xactonomial</a></span><span class="op">(</span><span class="va">psi_causal</span>, <span class="va">data</span>, alpha <span class="op">=</span> <span class="fl">.05</span>, psi_limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span><span class="op">)</span>, maxit <span class="op">=</span> <span class="fl">100</span>, chunksize <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
-<span> <span class="co">#})</span></span>
-<span> <span class="va">results</span><span class="op">$</span><span class="va">conf.int</span></span>
-<span><span class="op">}</span>, mc.cores <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fl">2</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">coverage_exact</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="va">xmres</span>, \<span class="op">(</span><span class="va">cint</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">true_psi_causal</span> <span class="op">&gt;=</span> <span class="va">cint</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="op">&amp;</span> <span class="va">true_psi_causal</span> <span class="op">&lt;=</span> <span class="va">cint</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span></span>
-<span><span class="op">}</span><span class="op">)</span></span>
+<span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu">sample_data2</span><span class="op">(</span>n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">60</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">data</span></span>
+<span><span class="co">#&gt; [[1]]</span></span>
+<span><span class="co">#&gt; [1] 17 28 15</span></span>
+<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/xactonomial.html">xactonomial</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">psi_causal</span>, psi_limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="fl">3</span>,<span class="fl">1</span><span class="op">)</span>, psi0 <span class="op">=</span> <span class="fl">.55</span>,</span>
+<span>                          maxit <span class="op">=</span> <span class="fl">100</span>, chunksize <span class="op">=</span> <span class="fl">1000</span>, itp_eps <span class="op">=</span> <span class="fl">.01</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">coverage_exact</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.99</span></span></code></pre></div>
+<span><span class="va">results</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;  Monte-Carlo multinomial test</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; data:  data</span></span>
+<span><span class="co">#&gt; p-value = 0.2431</span></span>
+<span><span class="co">#&gt; alternative hypothesis: true psi0 is not equal to 0.55</span></span>
+<span><span class="co">#&gt; 95 percent confidence interval:</span></span>
+<span><span class="co">#&gt;  0.3362949 0.5983333</span></span>
+<span><span class="co">#&gt; sample estimates:</span></span>
+<span><span class="co">#&gt; [1] 0.4666667</span></span></code></pre></div>
 </div>
 <div class="section level2 unnumbered">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
@@ -297,7 +248,7 @@ Jackknife.”</span> <em>The Annals of Statistics</em> 7 (1): 1–26.
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Michael C Sachs, Michael P Fay.</p>
+  <p>Developed by Michael C Sachs, Michael P Fay, Erin E Gabriel.</p>
 </div>
 
 <div class="pkgdown-footer-right">

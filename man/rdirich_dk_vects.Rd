@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{rdirich_dk_vects}
 \alias{rdirich_dk_vects}
-\title{Sample from a Dirichlet distribution for each of d_k vectors}
+\title{Sample independently from Dirichlet distributions for each of d_k vectors}
 \usage{
 rdirich_dk_vects(nsamp, alpha)
 }
@@ -15,7 +15,7 @@ rdirich_dk_vects(nsamp, alpha)
 A matrix with sum(d_k) columns and nsamp rows
 }
 \description{
-Sample from a Dirichlet distribution for each of d_k vectors
+Sample independently from Dirichlet distributions for each of d_k vectors
 }
 \examples{
 rdirich_dk_vects(10, list(rep(1, 3), rep(1, 4), rep(1, 2)))

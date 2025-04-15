@@ -8,9 +8,23 @@ test_that("confidence intervals for boundary problems", {
   }
 
   data_test <- list(c(0, 5))
-  xact_bin <- xactonomial(psi_binom, data_test, psi_limits = c(0, 1), maxit = 100, chunksize = 50)
+  xact_bin <- xactonomial(data_test, psi_binom, psi_limits = c(0, 1), maxit = 100, chunksize = 50)
 
-  expect_equal(xact_bin$conf.int[1], 0)
+  expect_true(abs(xact_bin$conf.int[1] - 0) < 1e-8)
+
+
+  psi_max <- function(pp) {
+
+    max(pp)
+
+  }
+
+  data <- list(c(13, 24, 13))
+  expect_warning(xactonomial(data, psi_max, psi_limits = c(1 / 3, 1), psi0 = 1/ 3, conf_int = FALSE, maxit = 10))
+  run2 <- xactonomial(data, psi_max, psi_limits = c(1 / 3, 1), psi0 = 1/ 3,
+              conf_int = FALSE, theta_null_points = t(c(1/3, 1/3, 1/3)))
+
+  expect_true(run2$p.value > 1e-8)
 
 })
 
@@ -35,13 +49,13 @@ test_that("two sided tests", {
 
   data <- list(T1 = c(2,1,2,1), T2 = c(0,1,3,3))
   set.seed(1)
-  expect_lt(xactonomial(psi_bc, data, psi_limits = c(0, 1), psi0 = .5,
-              maxit = 400, chunksize = 50)$p.value, .1)
+  expect_lt(xactonomial(data, psi_bc, psi_limits = c(0, 1), psi0 = .5, conf_int = FALSE,
+              maxit = 100, chunksize = 100)$p.value, .1)
 
-  expect_gt(xactonomial(psi_bc, data, psi_limits = c(0, 1), psi0 = .5, alternative = "less",
-              maxit = 100, chunksize = 20)$p.value, .1)
+  expect_gt(xactonomial(data, psi_bc, psi_limits = c(0, 1), psi0 = .5, alternative = "less", conf_int = FALSE,
+              maxit = 100, chunksize = 50)$p.value, .1)
 
-  expect_lt(xactonomial(psi_bc, data, psi_limits = c(0, 1), psi0 = .5, alternative = "greater",
+  expect_lt(xactonomial(data, psi_bc, psi_limits = c(0, 1), psi0 = .5, alternative = "greater", conf_int = FALSE,
               maxit = 400, chunksize = 50)$p.value, .1)
 
 })
@@ -57,8 +71,9 @@ test_that("three samples", {
   data <- list(T1 = c(2,1,1), T2 = c(0,1,3), T3 = c(1, 3, 0))
 
   set.seed(5)
-  expect_lt(xactonomial(psi_ba_v, data, psi_limits = c(0, 1), psi0 = .1, conf.int = FALSE,
-              maxit = 50, chunksize = 20, psi_is_vectorized = TRUE)$p.value, .4)
+  test <- xactonomial(data, psi_ba_v, psi_limits = c(0, 1), psi0 = .2, conf_int = FALSE,
+                      maxit = 500, chunksize = 500, psi_is_vectorized = TRUE, ga = FALSE)
+  expect_lt(test$p.value, .4)
 
 
 

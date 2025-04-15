@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">xactonomial</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -48,46 +48,40 @@
 
       <dl><dt>
 
+          <code><a href="calc_multinom_probs.html">calc_multinom_probs()</a></code>
+
+        </dt>
+        <dd>Calculate multinomial probabilities</dd>
+      </dl><dl><dt>
+
           <code><a href="calc_prob_null.html">calc_prob_null()</a></code>
 
         </dt>
         <dd>Calculate probability for given parameters</dd>
       </dl><dl><dt>
 
-          <code><a href="calc_prob_null2.html">calc_prob_null2()</a></code>
+          <code><a href="calc_prob_null_fast.html">calc_prob_null_fast()</a></code>
 
         </dt>
         <dd>Calculate probability for given parameters</dd>
       </dl><dl><dt>
 
-          <code><a href="calc_probs_rust.html">calc_probs_rust()</a></code>
+          <code><a href="calc_prob_null_gradient.html">calc_prob_null_gradient()</a></code>
 
         </dt>
-        <dd>calculate multinomial probabilities</dd>
+        <dd>Gradient of the multinomial likelihood sum</dd>
       </dl><dl><dt>
 
           <code><a href="combinate.html">combinate()</a></code>
 
         </dt>
-        <dd>Calculate combinations of multinomials</dd>
+        <dd>Calculate combinations of multinomial vectors</dd>
       </dl><dl><dt>
 
           <code><a href="combinate2.html">combinate2()</a></code>
 
         </dt>
-        <dd>Like combinate but add to existing</dd>
-      </dl><dl><dt>
-
-          <code><a href="expand_index.html">expand_index()</a></code>
-
-        </dt>
-        <dd>Get a matrix of indices for all possible combinations of vectors of lengths</dd>
-      </dl><dl><dt>
-
-          <code><a href="get_theta_random.html">get_theta_random()</a></code>
-
-        </dt>
-        <dd>Sample from the unit simplex in d dimensions</dd>
+        <dd>Like combinate but adds on to previous call</dd>
       </dl><dl><dt>
 
           <code><a href="itp_root.html">itp_root()</a></code>
@@ -108,46 +102,46 @@
         <dd>Compute a p value for the test of psi &lt;= psi0 (lower = TRUE) or psi &gt;= psi0 (lower = FALSE)</dd>
       </dl><dl><dt>
 
-          <code><a href="sample_unit_simplex.html">sample_unit_simplex()</a></code>
+          <code><a href="rdirich_dk_vects.html">rdirich_dk_vects()</a></code>
 
         </dt>
-        <dd>Return a random sample from the d unit simplex</dd>
+        <dd>Sample independently from Dirichlet distributions for each of d_k vectors</dd>
       </dl><dl><dt>
 
-          <code><a href="sample_unit_simplex2.html">sample_unit_simplex2()</a></code>
+          <code><a href="runif_dk_vects.html">runif_dk_vects()</a></code>
 
         </dt>
-        <dd>Return a random sample from the d unit simplex</dd>
+        <dd>Sample uniformly and independently from d_k simplices</dd>
       </dl><dl><dt>
 
           <code><a href="sample_unit_simplexn.html">sample_unit_simplexn()</a></code>
 
         </dt>
-        <dd>Return n random samples from the d unit simplex</dd>
+        <dd>Sample n times from the unit simplex in d dimensions</dd>
       </dl><dl><dt>
 
           <code><a href="sspace_multinom.html">sspace_multinom()</a></code>
 
         </dt>
-        <dd>Enumerate the sample space of a multinomial</dd>
+        <dd>Enumerate the multinomial sample space</dd>
       </dl><dl><dt>
 
-          <code><a href="xactonomial-package.html">xactonomial-package</a></code>
+          <code><a href="sspace_multinom_slow.html">sspace_multinom_slow()</a></code>
 
         </dt>
-        <dd>xactonomial: Exact Inference for Real-Valued Functionals of k-Sample Multinomial Parameters</dd>
+        <dd>Enumerate the sample space of a multinomial</dd>
       </dl><dl><dt>
 
           <code><a href="xactonomial.html">xactonomial()</a></code>
 
         </dt>
-        <dd>Exact inference for a real-valued function of multinomial parameters</dd>
+        <dd>Improved inference for a real-valued function of multinomial parameters</dd>
       </dl></div>
   </main></div>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Michael C Sachs, Michael P Fay.</p>
+  <p>Developed by Michael C Sachs, Michael P Fay, Erin E Gabriel.</p>
 </div>
 
 <div class="pkgdown-footer-right">

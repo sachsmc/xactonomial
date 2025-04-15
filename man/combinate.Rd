@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{combinate}
 \alias{combinate}
-\title{Calculate combinations of multinomials}
+\title{Calculate combinations of multinomial vectors}
 \usage{
 combinate(X, Y)
 }
@@ -12,8 +12,16 @@ combinate(X, Y)
 \item{Y}{Matrix 2}
 }
 \value{
-A list of arrays
+A list containing Sspace, the sample space (vectors of counts), and
+ logC, a vector of the log multinomial coefficients.
 }
 \description{
-Calculate combinations of multinomials
+Given X and Y, both matrices where the rows are counts of multinomial trials,
+produce all combinations rowwise, and calculate the log multinomial
+coefficients for the combination.
+}
+\examples{
+slist_2_3 <- combinate(matrix(sspace_multinom(2, 5), ncol = 2, byrow = TRUE),
+   matrix(sspace_multinom(3, 6), ncol = 3, byrow = TRUE))
+
 }

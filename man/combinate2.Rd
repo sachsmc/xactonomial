@@ -2,18 +2,25 @@
 % Please edit documentation in R/utils.R
 \name{combinate2}
 \alias{combinate2}
-\title{Like combinate but add to existing}
+\title{Like \link{combinate} but adds on to previous call}
 \usage{
 combinate2(X, Y)
 }
 \arguments{
-\item{X}{A list as returned by combinate}
+\item{X}{A list containing the elements Sspace (matrix), and logC (vector)}
 
 \item{Y}{Matrix 2}
 }
 \value{
-A list of arrays
+A list containing Sspace, the sample space (vectors of counts), and
+ logC, a vector of the log multinomial coefficients.
 }
 \description{
-Like combinate but add to existing
+Like \link{combinate} but adds on to previous call
+}
+\examples{
+slist_2_3 <- combinate(matrix(sspace_multinom(2, 5), ncol = 2, byrow = TRUE),
+   matrix(sspace_multinom(3, 6), ncol = 3, byrow = TRUE))
+
+sl_2_3_4 <- combinate2(slist_2_3, matrix(sspace_multinom(4, 3), ncol = 4, byrow = TRUE))
 }

@@ -1,23 +1,4 @@
-#' Calculate probability for given parameters
-#'
-#' Given a set of candidate parameter vectors, check if the null \eqn{\psi \leq
-#' \psi_0} is satisfied, and if so, compute the probability for each element of
-#' the sample space
-#'
-#' @param theta_cands A matrix with samples in the rows and the parameters in
-#'   the columns
-#' @param psi The function of interest mapping parameters to the real line
-#' @param psi0 The null boundary for testing psi <= psi0
-#' @param minus1 Either plus or minus 1
-#' @param SSpacearr A matrix with the sample space for the given size of the
-#'   problem
-#' @param II logical vector of sample space psi being more extreme than the
-#'   observed psi
-#' @param logC log multinomial coefficient for each element of the sample space
-#'
-#' @returns A numeric vector of probabilities
-#'
-#' @export
+#' @inherit calc_prob_null_fast
 #'
 
 calc_prob_null <- function(theta_cands, SSpacearr, logC, II) {
@@ -33,8 +14,7 @@ calc_prob_null <- function(theta_cands, SSpacearr, logC, II) {
   for(i in 1:nrow(theta_cands)) {
 
     thistheta <- theta_cands[i,]
-
-      res[i] <- sum(exp((.colSums(t(SSpacearr) * log(thistheta), m = m, n = n) +
+    res[i] <- sum(exp((.colSums(t(SSpacearr) * log(thistheta), m = m, n = n) +
                            logC))) ## way faster
       #res[i] <- sum(exp((c(SSpacearr %*% log(thistheta)) + logC)[II]))
 
@@ -49,9 +29,6 @@ calc_prob_null <- function(theta_cands, SSpacearr, logC, II) {
 #'
 #' @param theta_cands A matrix with samples in the rows and the parameters in
 #'   the columns
-#' @param psi The function of interest mapping parameters to the real line
-#' @param psi0 The null boundary for testing psi <= psi0
-#' @param minus1 Either plus or minus 1
 #' @param SSpacearr A matrix with the sample space for the given size of the
 #'   problem
 #' @param II logical vector of sample space psi being more extreme than the
@@ -62,7 +39,7 @@ calc_prob_null <- function(theta_cands, SSpacearr, logC, II) {
 #' @export
 #' @examples
 #' calc_prob_null_gradient(t(c(.28, .32, .4)),
-#' \(s) s[, 1], .3, 1, matrix(c(2, 2, 1, 1, 2, 2, 0, 3, 2), ncol = 3),
+#' matrix(c(2, 2, 1, 1, 2, 2, 0, 3, 2), ncol = 3),
 #' rep(TRUE, 3))
 #'
 #' # numerically
@@ -101,33 +78,38 @@ calc_prob_null_gradient <- function(theta_cands, SSpacearr, II) {
 
 #' Calculate probability for given parameters
 #'
-#' Given a set of candidate parameter vectors, check if the null \eqn{\psi \leq
-#' \psi_0} is satisfied, and if so, compute the probability for each element of
-#' the sample space
+#' Given a set of candidate parameter vectors, the enumerated sample space, and a
+#' logical vector with the same number of elements of the sample space, compute
+#' the probability for each element of the sample space and take the sum.
 #'
 #' @param theta_cands A matrix with samples in the rows and the parameters in
 #'   the columns
-#' @param psi The function of interest mapping parameters to the real line
-#' @param psi0 The null boundary for testing psi <= psi0
 #' @param SSpacearr A matrix with the sample space for the given size of the
 #'   problem
 #' @param II logical vector of sample space psi being more extreme than the
 #'   observed psi
 #' @param logC log multinomial coefficient for each element of the sample space
-#' @param psi_v Is psi vectorized by row?
 #'
 #' @returns A numeric vector of probabilities
 #'
 #' @export
+#' @examples
+#' sspace_3_5 <- matrix(sspace_multinom(3, 5), ncol = 3, byrow = TRUE)
+#' theta_cands <- matrix(sample_unit_simplexn(3, 10), ncol = 3,byrow = TRUE)
+#' calc_prob_null_fast(theta_cands, sspace_3_5,
+#' apply(sspace_3_5, 1, log_multinom_coef, sumx = 5), II = 1:21 > 12)
+#' # same as below but faster
+#' calc_prob_null(theta_cands, sspace_3_5,
+#' apply(sspace_3_5, 1, log_multinom_coef, sumx = 5), II = 1:21 > 12)
 #'
 
-calc_prob_null2 <- function(theta_cands, SSpacearr, logC, II) {
+calc_prob_null_fast <- function(theta_cands, SSpacearr, logC, II) {
 
   SSpacearr <- SSpacearr[II,, drop = FALSE]
   logC <- logC[II]
 
   theta_cands[theta_cands < 1e-250] <- 1e-250
-  res <- calc_probs_rust(1.0*c(t(SSpacearr)), log(c(t(theta_cands))),
+  res <- calc_multinom_probs(1.0*c(t(SSpacearr)), log(c(t(theta_cands))),
                          logC, d = ncol(SSpacearr), n = sum(II), nt = nrow(theta_cands))
 
 

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">xactonomial</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -48,14 +48,20 @@
 <span>  <span class="va">psi</span>,</span>
 <span>  <span class="va">psi_hat</span>,</span>
 <span>  <span class="va">psi_obs</span>,</span>
+<span>  alternative <span class="op">=</span> <span class="st">"two.sided"</span>,</span>
 <span>  <span class="va">maxit</span>,</span>
 <span>  <span class="va">chunksize</span>,</span>
-<span>  lower <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  <span class="va">target</span>,</span>
+<span>  <span class="va">p_target</span>,</span>
 <span>  <span class="va">SSpacearr</span>,</span>
 <span>  <span class="va">logC</span>,</span>
 <span>  <span class="va">d_k</span>,</span>
-<span>  psi_v <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  psi_is_vectorized <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  theta_sampler <span class="op">=</span> <span class="va">runif_dk_vects</span>,</span>
+<span>  ga <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  ga_gfactor <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  ga_lrate <span class="op">=</span> <span class="fl">0.01</span>,</span>
+<span>  ga_restart_every <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  warn <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -64,11 +70,12 @@
 
 
 <dl><dt id="arg-psi-">psi0<a class="anchor" aria-label="anchor" href="#arg-psi-"></a></dt>
-<dd><p>The null value</p></dd>
+<dd><p>The null hypothesis value for the parameter being tested.</p></dd>
 
 
 <dt id="arg-psi">psi<a class="anchor" aria-label="anchor" href="#arg-psi"></a></dt>
-<dd><p>The function of interest</p></dd>
+<dd><p>Function that takes in parameters and outputs a real
+valued number for each parameter. Can be vectorized rowwise for a matrix or not.</p></dd>
 
 
 <dt id="arg-psi-hat">psi_hat<a class="anchor" aria-label="anchor" href="#arg-psi-hat"></a></dt>
@@ -76,52 +83,97 @@
 
 
 <dt id="arg-psi-obs">psi_obs<a class="anchor" aria-label="anchor" href="#arg-psi-obs"></a></dt>
-<dd><p>The observed estimate</p></dd>
+<dd><p>The observed estimate at the given data</p></dd>
+
+
+<dt id="arg-alternative">alternative<a class="anchor" aria-label="anchor" href="#arg-alternative"></a></dt>
+<dd><p>a character string specifying the alternative hypothesis, must be one of "two.sided" (default), "greater" or "less"</p></dd>
 
 
 <dt id="arg-maxit">maxit<a class="anchor" aria-label="anchor" href="#arg-maxit"></a></dt>
-<dd><p>Maximum iterations</p></dd>
+<dd><p>Maximum number of iterations of the Monte Carlo procedure</p></dd>
 
 
 <dt id="arg-chunksize">chunksize<a class="anchor" aria-label="anchor" href="#arg-chunksize"></a></dt>
-<dd><p>Chunk size</p></dd>
+<dd><p>The number of samples to take from the parameter space at each iteration</p></dd>
 
 
-<dt id="arg-lower">lower<a class="anchor" aria-label="anchor" href="#arg-lower"></a></dt>
-<dd><p>Do a one sided test of the null that it is less than psi0, otherwise greater.</p></dd>
-
-
-<dt id="arg-target">target<a class="anchor" aria-label="anchor" href="#arg-target"></a></dt>
-<dd><p>Stop the algorithm if p &gt;= target (for speed)</p></dd>
+<dt id="arg-p-target">p_target<a class="anchor" aria-label="anchor" href="#arg-p-target"></a></dt>
+<dd><p>If a p-value is found that is greater than p_target, terminate the algorithm early.</p></dd>
 
 
 <dt id="arg-sspacearr">SSpacearr<a class="anchor" aria-label="anchor" href="#arg-sspacearr"></a></dt>
-<dd><p>The sample space array</p></dd>
+<dd><p>The sample space matrix</p></dd>
 
 
 <dt id="arg-logc">logC<a class="anchor" aria-label="anchor" href="#arg-logc"></a></dt>
-<dd><p>The log multinomial coefficient</p></dd>
+<dd><p>The log multinomial coefficients for each row of the sample space</p></dd>
 
 
 <dt id="arg-d-k">d_k<a class="anchor" aria-label="anchor" href="#arg-d-k"></a></dt>
 <dd><p>The vector of dimensions</p></dd>
 
 
-<dt id="arg-psi-v">psi_v<a class="anchor" aria-label="anchor" href="#arg-psi-v"></a></dt>
+<dt id="arg-psi-is-vectorized">psi_is_vectorized<a class="anchor" aria-label="anchor" href="#arg-psi-is-vectorized"></a></dt>
 <dd><p>Is psi vectorized by row?</p></dd>
+
+
+<dt id="arg-theta-sampler">theta_sampler<a class="anchor" aria-label="anchor" href="#arg-theta-sampler"></a></dt>
+<dd><p>Function to take samples from the \(Theta\) parameter space. Default is <a href="runif_dk_vects.html">runif_dk_vects</a>.</p></dd>
+
+
+<dt id="arg-ga">ga<a class="anchor" aria-label="anchor" href="#arg-ga"></a></dt>
+<dd><p>Logical, if TRUE, uses gradient ascent.</p></dd>
+
+
+<dt id="arg-ga-gfactor">ga_gfactor<a class="anchor" aria-label="anchor" href="#arg-ga-gfactor"></a></dt>
+<dd><p>Concentration parameter scale in the gradient ascent algorithm. A number or "adapt"</p></dd>
+
+
+<dt id="arg-ga-lrate">ga_lrate<a class="anchor" aria-label="anchor" href="#arg-ga-lrate"></a></dt>
+<dd><p>The gradient ascent learning rate</p></dd>
+
+
+<dt id="arg-ga-restart-every">ga_restart_every<a class="anchor" aria-label="anchor" href="#arg-ga-restart-every"></a></dt>
+<dd><p>Restart the gradient ascent after this number of iterations at a sample from</p></dd>
+
+
+<dt id="arg-warn">warn<a class="anchor" aria-label="anchor" href="#arg-warn"></a></dt>
+<dd><p>If TRUE, will give a warning if no samples from the null space are found</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A p-value</p>
+    <p>A vector with two p-values, one for the lower, and one for the greater</p>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">sspace_3_5</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="sspace_multinom.html">sspace_multinom</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">5</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">3</span>, byrow <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">psi</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">theta</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">theta</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">logC</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">sspace_3_5</span>, <span class="fl">1</span>, <span class="va">log_multinom_coef</span>, sumx <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">psi_hat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">sspace_3_5</span>, <span class="fl">1</span>, \<span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu">psi</span><span class="op">(</span><span class="va">x</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">pvalue_psi0</span><span class="op">(</span><span class="fl">.3</span>, <span class="va">psi</span>, <span class="va">psi_hat</span>, <span class="fl">.4</span>, maxit <span class="op">=</span> <span class="fl">10</span>, chunksize <span class="op">=</span> <span class="fl">100</span>,</span></span>
+<span class="r-in"><span> p_target <span class="op">=</span> <span class="fl">1</span>, SSpacearr <span class="op">=</span> <span class="va">sspace_3_5</span>, logC <span class="op">=</span> <span class="va">logC</span>, d_k <span class="op">=</span> <span class="fl">3</span>, warn <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      null       alt </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 0.0010000 0.3702166 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"p.sequence")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"p.sequence")$p.null</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [1] 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"p.sequence")$p.alt</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [1] 0.3650079 0.3681825 0.3681825 0.3681825 0.3681825 0.3702166 0.3702166</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [8] 0.3702166 0.3702166 0.3702166</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Michael C Sachs, Michael P Fay.</p>
+  <p>Developed by Michael C Sachs, Michael P Fay, Erin E Gabriel.</p>
 </div>
 
 <div class="pkgdown-footer-right">

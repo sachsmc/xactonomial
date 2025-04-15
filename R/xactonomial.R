@@ -1,4 +1,4 @@
-#' Exact inference for a real-valued function of multinomial parameters
+#' Improved inference for a real-valued function of multinomial parameters
 #'
 #' We consider the k sample multinomial problem where we observe k vectors
 #' (possibly of different lengths), each representing an independent sample from
@@ -12,37 +12,98 @@
 #' \ldots, k} and denote \eqn{\boldsymbol{T} = (T_1, \ldots, T_k)} and
 #' \eqn{\boldsymbol{\theta} = (\theta_1, \ldots, \theta_k)}. The subscript
 #' \eqn{d_j} denotes the dimension of the multinomial. Suppose one is interested
-#' in the parameter \eqn{\psi(\boldsymbol{\theta}) \in \Theta \subseteq
-#' \mathbb{R}}. Given a sample of size \eqn{n} from \eqn{\boldsymbol{T}}, one
-#' can estimate \eqn{\boldsymbol{\theta}} with the sample proportions as
-#' \eqn{\hat{\boldsymbol{\theta}}} and hence
-#' \eqn{\pi(\hat{\boldsymbol{\theta}})}. This function constructs a \eqn{1 -
-#' \alpha} percent confidence interval for \eqn{\psi(\boldsymbol{\theta})} and
-#' provides a function to calculate a p value for a test of the null hypothesis
+#' in the parameter \eqn{\psi = \tau(\boldsymbol{\theta}) \in \Psi \subseteq
+#' \mathbb{R}}. Given a sample of size \eqn{n} from \eqn{\boldsymbol{T}}, say
+#' \eqn{\boldsymbol{X} = (X_1, \ldots, X_k)}, which is a vector of counts obtained
+#' by concatenating the k independent count vectors, let \eqn{G(\boldsymbol{X})}
+#' denote a real-valued statistic that defines the ordering of the sample space.
+#' Tne default choice of the statistic is to estimate \eqn{\boldsymbol{\theta}}
+#' with the sample proportions and plug them into \eqn{\tau(\boldsymbol{\theta})}.
+#' This function calculates a p value for a test of the null hypothesis
 #' \eqn{H_0: \psi(\boldsymbol{\theta}) \neq \psi_0} for the two sided case,
 #' \eqn{H_0: \psi(\boldsymbol{\theta}) \leq \psi_0} for the case \code{alternative = "greater"}, and
 #' \eqn{H_0: \psi(\boldsymbol{\theta}) \geq \psi_0} for the case \code{alternative = "less"}.
 #' We make no assumptions and do not rely on large sample approximations.
-#' The computation is somewhat involved so it is best for small sample sizes
-#' though there are some strategies for speeding things up that are described in Details.
+#' It also optionally constructs a \eqn{1 - \alpha} percent confidence interval for \eqn{\psi}.
+#' The computation is somewhat involved so it is best for small sample sizes. The
+#' calculation is done by sampling a large number of points from the null parameter space \eqn{\Theta_0},
+#' then computing multinomial probabilities under those values for the range of the sample space
+#' where the statistic is as or more extreme than the observed statistic given data. It
+#' is basically the definition of a p-value implemented with Monte Carlo methods. Some
+#' options for speeding up the calculation are available.
 #'
-#' @param psi Function that takes in a vector of parameters and outputs a real
-#'   valued number
+#' @section Specifying the function psi:
+#' The psi parameter should be a function that either: 1) takes a vector of length
+#' sum(d_j) (the total number of bins) and outputs a single number, or 2) takes a
+#' matrix with number of columns equal to sum(d_j), and arbitrary number of rows and
+#' outputs a vector with length equal to the number of rows. In other words, psi can be
+#' not vectorized or it can be vectorized by row. Writing it so that it is vectorized
+#' can speed up the calculation. See examples.
+#'
+#' @section Boundary issues:
+#' It is required to provide psi_limits, a vector of length 2 giving the
+#' smallest and largest possible values that the function psi can take, e.g., \code{c(0, 1)}.
+#' If the null hypothesis value psi0 is at one of the limits, it is often the case
+#' that sampling from the null parameter space is impossible because it is a set of
+#' measure 0. While it may have measure 0, it is not empty, and will contain a finite
+#' set of points. Thus you should provide the argument \code{theta_null_points} which is
+#' a matrix where the rows contain the finite set (sometimes 1) of points
+#' \eqn{\theta} such that \eqn{\tau(\theta) = \psi_0}. See examples.
+#'
+#' @section Optimization options:
+#' For p-value calculation, you can provide a parameter p_target, so that the sampling
+#' algorithm terminates when a p-value is found that exceeds p_target. The algorithm
+#' begins by sampling uniformly from the unit simplices defining the parameter space, but
+#' alternatives can be specified in \code{theta_sampler}. By default
+#' gradient ascent (\code{ga = TRUE}) is performed during the p-value maximization
+#' procedure, and \code{ga_gfactor} and \code{ga_lrate} control options for the gradient
+#' ascent. At each iteration, the gradient of the multinomial probability at the current maximum
+#' theta is computed, and a step is taken to \code{theta + lrate * gradient}. Then
+#' for the next iteration, a set of \code{chunksize} samples are drawn from a Dirichlet distribution
+#' with parameter \code{ga_gfactor * (theta + ga_lrate * gradient)}. If \code{ga_gfactor = "adapt"} then
+#' it is set to \code{1 / max(theta)} at each iteration. The ITP algorithm \link{itp} is used
+#' to find roots of the p-value function as a function of the psi0 value to get confidence intervals.
+#' The maximum number of iterations and epsilon can be controlled via \code{itp_maxit, itp_eps}.
+#'
+#'
+#'
 #' @param data A list with k elements representing the vectors of counts of a
 #'   k-sample multinomial
-#' @param psi0 The null hypothesis value for the parameter being tested. A p value for a test of psi <= psi0 is computed. If NULL only a confidence interval is computed.
+#' @param psi Function that takes in parameters and outputs a real
+#'   valued number for each parameter. Can be vectorized rowwise for a matrix or not.
+#' @param statistic Function that takes in a matrix with data vectors in the rows, and outputs a vector with the number of rows in the matrix. If NULL, will be inferred from psi by plugging in the empirical proportions.
+#' @param psi0 The null hypothesis value for the parameter being tested.
 #' @param alternative a character string specifying the alternative hypothesis, must be one of "two.sided" (default), "greater" or "less"
-#' @param alpha A 1 - alpha percent confidence interval will be computed
 #' @param psi_limits A vector of length 2 giving the lower and upper limits of
 #'   the range of \eqn{\psi(\theta)}
-#' @param maxit Maximum number of iterations of the stochastic procedure
-#' @param chunksize The number of samples taken from the parameter space at each
-#'   iteration
-#' @param conf.int Logical. If FALSE, no confidence interval is calculated, only the p-value.
-#' @param psi.is.vectorized Logical. If TRUE, expect that psi can take a matrix as input, and return a vector of length the number of rows, computing the statistic for each row of the matrix. If possible, this will substantially speed up the computation. See examples.
+#' @param theta_null_points An optional matrix where each row is a theta value that gives psi(theta) = psi0. If this is supplied and psi0 = one of the boundary points, then a truly exact p-value will be calculated.
+#' @param p_target If a p-value is found that is greater than p_target, terminate the algorithm early.
+#' @param conf_int If TRUE, calculates a confidence interval by inverting the p-value function
+#' @param itp_maxit Maximum iterations to use in the ITP algorithm. Only relevant if conf_int = TRUE.
+#' @param itp_eps Epsilon value to use for the ITP algorithm. Only relevant if conf_int = TRUE.
+#' @param maxit Maximum number of iterations of the Monte Carlo procedure
+#' @param chunksize The number of samples to take from the parameter space at each iteration
+#' @param theta_sampler Function to take samples from the \eqn{Theta} parameter space. Default is \link{runif_dk_vects}.
+#' @param ga Logical, if TRUE, uses gradient ascent.
+#' @param ga_gfactor Concentration parameter scale in the gradient ascent algorithm. A number or "adapt"
+#' @param ga_lrate The gradient ascent learning rate
+#' @param ga_restart_every Restart the gradient ascent after this number of iterations at a sample from \code{theta_sampler}
 #'
-#' @returns A list with 3 elements: the estimate, the 1 - alpha percent
-#'   confidence interval, and p-value
+#' @returns An object of class "htest", which is a list with the following elements:
+#' \describe{
+#' \item{estimate}{The value of the statistic at the observed data}
+#' \item{p.value}{The p value}
+#' \item{conf.int}{The upper and lower confidence limits}
+#' \item{null.value}{The null hypothesis value provided by the user}
+#' \item{alternative}{The type of test}
+#' \item{method}{A description of the method}
+#' \item{data.name}{The name of the data object provided by the user}
+#' \item{p.sequence}{A list with two elements, p.null and p.alt containing the vector of p values at each iteration for the less than null and the greater than null. Used for assessing convergence. }
+#' }
+#'
+#' @references Sachs, M.C., Gabriel, E.E. and Fay, M.P., 2024. Exact confidence intervals for functions of parameters in the k-sample multinomial problem. arXiv preprint arXiv:2406.19141.
+#'
+#'
 #' @export
 #' @examples
 #' psi_ba <- function(theta) {
@@ -51,28 +112,56 @@
 #'   sum(sqrt(theta1 * theta2))
 #'   }
 #' data <- list(T1 = c(2,1,2,1), T2 = c(0,1,3,3))
-#' xactonomial(psi_ba, data, psi_limits = c(0, 1), maxit = 5, chunksize = 20)
+#' xactonomial(data, psi_ba, psi_limits = c(0, 1), psi0 = .5,
+#'   conf_int = FALSE, maxit = 15, chunksize = 200)
 #'
+#' # vectorized by row
 #' psi_ba_v <- function(theta) {
 #' theta1 <- theta[,1:4, drop = FALSE]
 #' theta2 <- theta[,5:8, drop = FALSE]
 #' rowSums(sqrt(theta1 * theta2))
 #' }
 #' data <- list(T1 = c(2,1,2,1), T2 = c(0,1,3,3))
-#' xactonomial(psi_ba_v, data, psi_limits = c(0, 1), maxit = 5, chunksize = 20, psi.is.vectorized = TRUE)
+#' xactonomial(data, psi_ba_v, psi_limits = c(0, 1), psi0 = .5,
+#'  conf_int = FALSE, maxit = 10, chunksize = 200)
+#'
+#'  # example of using theta_null_points
+#'  # psi = 1/3 occurs when all probs = 1/3
+#'  psi_max <- function(pp) {
+#'    max(pp)
+#'  }
+#'
+#' data <- list(c(13, 24, 13))
+#'
+#' xactonomial(data, psi_max, psi_limits = c(1 / 3, 1), psi0 = 1/ 3,
+#'   conf_int = FALSE, theta_null_points = t(c(1/3, 1/3, 1/3)))
+#'
 #'
 
 xactonomial <- function(data, psi, statistic = NULL, psi0 = NULL,
                         alternative = c("two.sided", "less", "greater"),
-                        psi_is_vectorized = FALSE, psi_limits, theta_boundary_points = NULL, p_target = 1,
-                        conf_int = TRUE, conf_level = .95, itp_maxit = 10,
+                        psi_limits, theta_null_points = NULL, p_target = 1,
+                        conf_int = TRUE, conf_level = .95, itp_maxit = 10, itp_eps = .005,
                         maxit = 50, chunksize = 500,
                         theta_sampler = runif_dk_vects,
-                        ga = TRUE, ga_gfactor = 1, ga_lrate = .01,
+                        ga = TRUE, ga_gfactor = "adapt", ga_lrate = .01,
                         ga_restart_every = 10
                         ) {
 
   alternative <- match.arg(alternative)
+  if(missing(psi_limits)) {
+    stop("Please provide the lower and upper limits of the output of the psi function as a vector in psi_limits")
+  }
+
+  if(!is.null(psi0) & (psi0 < min(psi_limits) | psi0 > max(psi_limits))) {
+    stop("psi0 outside the possible range specified by psi_limits.")
+  }
+
+  if(!is.null(psi0) & (any(abs(psi0 - psi_limits) < 1e-8) & is.null(theta_null_points))) {
+
+
+    warning("The psi0 value is on the boundary of the psi parameter space. The Monte Carlo method may not perform well in this case. Consider specifying theta_null_points which is a matrix of theta vectors at which psi(theta) = psi0.")
+  }
 
   alpha <- 1 - conf_level
 
@@ -80,9 +169,12 @@ xactonomial <- function(data, psi, statistic = NULL, psi0 = NULL,
   d_k <- sapply(data, length)
   n_k <- sapply(data, sum)
 
+  vtest <- runif_dk_vects(d_k, 5)
+  psi_is_vectorized <- tryCatch(length(psi(vtest)) == 5, error = function(e) FALSE)
+
   sspace_size <- prod(sapply(data, \(dd) choose(length(dd) + sum(dd) - 1, length(dd) - 1)))
 
-  SSpace <- lapply(data, \(x) sspace_multinom(length(x), sum(x)))
+  SSpace <- lapply(data, \(x) matrix(sspace_multinom(length(x), sum(x)), ncol = length(x), byrow = TRUE))
 
   if(k == 1) {
 
@@ -90,7 +182,7 @@ xactonomial <- function(data, psi, statistic = NULL, psi0 = NULL,
     sumX <- sum(newX[1,])
     logC <- lfactorial(sumX) - rowSums(apply(newX, 2, lfactorial))
 
-    spacelist <- list(Sspace = newX, Sprobs = newX / sumX, logC = logC)
+    spacelist <- list(Sspace = newX, logC = logC)
 
   } else if(k == 2) {
 
@@ -133,36 +225,23 @@ xactonomial <- function(data, psi, statistic = NULL, psi0 = NULL,
   }
 
   psi_obs <- statistic(unlist(data))
-  # psi_obs <- if(psi.is.vectorized) {
-  #   psi(matrix(dprobs, nrow = 1))
-  # } else {
-  #   psi(tmpdat)
-  # }
 
   psi_hat <- statistic(spacelist$Sspace)
 
-  ## check if all elements of sample space above or below observed
-
-
-
-
-
+  method <- "Monte-Carlo multinomial test"
   pvalues <- if(!is.null(psi0)) {
 
-    if(!is.null(theta_boundary_points) & any(abs(psi0 - psi_limits) < 1e-8)) {
+    if(!is.null(theta_null_points) && any(abs(psi0 - psi_limits) < 1e-8)) {
 
-      psi0bnd <- if(all.equal(psi0, psi_limits[1], check.names = FALSE, check.attributes = FALSE)) {
-        theta_boundary_points$lower
-      } else {
-        theta_boundary_points$upper
-      }
+      method <- "Exact multinomial test given a point null"
       II.lower <- psi_hat >= psi_obs
       II.upper <- psi_hat <= psi_obs
-     c(calc_prob_null(psi0bnd, spacelist$Sspace, spacelist$logC,  II.lower),
-       calc_prob_null(psi0bnd, spacelist$Sspace, spacelist$logC,  II.upper))
+     c(max(calc_prob_null_fast(theta_null_points, spacelist$Sspace, spacelist$logC,  II.lower)),
+       max(calc_prob_null_fast(theta_null_points, spacelist$Sspace, spacelist$logC,  II.upper)))
 
 
     } else {
+
 
     pvalue_psi0(psi0 = psi0, psi = psi, psi_hat = psi_hat, psi_obs = psi_obs, alternative = alternative,
                 maxit = maxit, chunksize = chunksize,
@@ -187,13 +266,14 @@ xactonomial <- function(data, psi, statistic = NULL, psi0 = NULL,
                 ga = ga, ga_gfactor = ga_gfactor, ga_lrate = ga_lrate,
                 ga_restart_every = ga_restart_every)[1] - alpha / 2}
 
-  if(!is.null(theta_boundary_points$lower)) {
+  if(!is.null(theta_null_points)) {
+    if(!is.null(psi0) & abs(psi0 - psi_limits[1]) < 1e-8) {
 
     II.lower <- psi_hat >= psi_obs
 
-    flower.boundary <- max(calc_prob_null2(theta_boundary_points$lower, spacelist$Sspace, spacelist$logC,  II.lower)) -
+    flower.boundary <- max(calc_prob_null_fast(theta_boundary_points$lower, spacelist$Sspace, spacelist$logC,  II.lower)) -
       alpha / 2
-
+  }
   } else {
     flower.boundary <- -alpha / 2
   }
@@ -209,12 +289,13 @@ xactonomial <- function(data, psi, statistic = NULL, psi0 = NULL,
                 ga_restart_every = ga_restart_every)[2] - alpha / 2
   }
 
-  if(!is.null(theta_boundary_points$upper)) {
-
+  if(!is.null(theta_null_points)) {
+    if(!is.null(psi0) & abs(psi0 - psi_limits[2]) < 1e-8) {
     II.upper <- psi_hat <= psi_obs
-    fupper.boundary <- max(calc_prob_null2(theta_boundary_points$upper, spacelist$Sspace, spacelist$logC,  II.upper)) -
+    fupper.boundary <- max(calc_prob_null_fast(theta_boundary_points$upper, spacelist$Sspace, spacelist$logC,  II.upper)) -
       alpha / 2
 
+    }
   } else {
     fupper.boundary <- - alpha / 2
   }
@@ -225,9 +306,10 @@ xactonomial <- function(data, psi, statistic = NULL, psi0 = NULL,
   } else {
     lower_limit <- itp_root(flower, psi_limits[1], psi_limits[2],
                             fa = flower.boundary, fb = 1 - alpha / 2, maxiter = itp_maxit,
+                            eps = itp_eps,
                             psi = psi, psi_hat = psi_hat, psi_obs = psi_obs,
                             maxit = maxit, chunksize = chunksize,
-                            p_target = alpha / 2 + .01,
+                            p_target = alpha / 2 + 2 * itp_eps,
                             SSpacearr = spacelist$Sspace, logC = spacelist$logC,
                             d_k = d_k, psi_is_vectorized = psi_is_vectorized,
                             theta_sampler = theta_sampler,
@@ -247,9 +329,10 @@ xactonomial <- function(data, psi, statistic = NULL, psi0 = NULL,
   } else {
     upper_limit <- itp_root(fupper, psi_limits[1], psi_limits[2],
                             fa = 1-alpha / 2, fb = fupper.boundary, maxiter = itp_maxit,
+                            eps = itp_eps,
                             psi = psi, psi_hat = psi_hat, psi_obs = psi_obs,
                             maxit = maxit, chunksize = chunksize,
-                            p_target = alpha / 2 + 0.01,
+                            p_target = alpha / 2 + 2 * itp_eps,
                             SSpacearr = spacelist$Sspace, logC = spacelist$logC,
                             d_k = d_k, psi_is_vectorized = psi_is_vectorized,
                             theta_sampler = theta_sampler,
@@ -269,12 +352,6 @@ xactonomial <- function(data, psi, statistic = NULL, psi0 = NULL,
 
   p.sequence <- attr(pvalues, "p.sequence")
 
-  # list(estimate = psi_obs,
-  #      conf.int = confint,
-  #      p.value = c(pvalues, 2 * min(pvalues)),
-  #      p.sequence = p.sequence
-  #      )
-
   attr(confint, "conf.level") = 1 - alpha
 
   res <- list(
@@ -283,7 +360,7 @@ xactonomial <- function(data, psi, statistic = NULL, psi0 = NULL,
     conf.int = confint,
     null.value = c(psi0 = psi0),
     alternative = alternative,
-    method = "Monte-Carlo exact multinomial test",
+    method = method,
     data.name = deparse1(substitute(data)),
     p.sequence = p.sequence
   )
@@ -295,23 +372,35 @@ xactonomial <- function(data, psi, statistic = NULL, psi0 = NULL,
 
 #' Compute a p value for the test of psi <= psi0 (lower = TRUE) or psi >= psi0 (lower = FALSE)
 #'
-#' @param psi0 The null value
-#' @param psi The function of interest
+#' @param psi0 The null hypothesis value for the parameter being tested.
+#' @param psi Function that takes in parameters and outputs a real
+#'   valued number for each parameter. Can be vectorized rowwise for a matrix or not.
 #' @param psi_hat The vector of psi values at each element of the sample space
-#' @param psi_obs The observed estimate
-#' @param maxit Maximum iterations
-#' @param chunksize Chunk size
-#' @param lower Do a one sided test of the null that it is less than psi0, otherwise greater.
-#' @param target Stop the algorithm if p >= target (for speed)
-#' @param SSpacearr The sample space array
-#' @param logC The log multinomial coefficient
+#' @param psi_obs The observed estimate at the given data
+#' @param alternative a character string specifying the alternative hypothesis, must be one of "two.sided" (default), "greater" or "less"
+#' @param maxit Maximum number of iterations of the Monte Carlo procedure
+#' @param chunksize The number of samples to take from the parameter space at each iteration
+#' @param p_target If a p-value is found that is greater than p_target, terminate the algorithm early.
+#' @param SSpacearr The sample space matrix
+#' @param logC The log multinomial coefficients for each row of the sample space
 #' @param d_k The vector of dimensions
-#' @param psi_v Is psi vectorized by row?
-#' @param theta_sampler Sampler
-#' @param gradient_ascent Do ga?
-#' @param gamma Parameter to determine concentration of dirichlet, only relevant if gradient_ascent = TRUE
-#' @returns A p-value
+#' @param psi_is_vectorized Is psi vectorized by row?
+#' @param theta_sampler Function to take samples from the \eqn{Theta} parameter space. Default is \link{runif_dk_vects}.
+#' @param ga Logical, if TRUE, uses gradient ascent.
+#' @param ga_gfactor Concentration parameter scale in the gradient ascent algorithm. A number or "adapt"
+#' @param ga_lrate The gradient ascent learning rate
+#' @param ga_restart_every Restart the gradient ascent after this number of iterations at a sample from
+#' @param warn If TRUE, will give a warning if no samples from the null space are found
+#' @returns A vector with two p-values, one for the lower, and one for the greater
+#' @export
+#' @examples
 #'
+#' sspace_3_5 <- matrix(sspace_multinom(3, 5), ncol = 3, byrow = TRUE)
+#' psi <- function(theta) max(theta)
+#' logC <- apply(sspace_3_5, 1, log_multinom_coef, sumx = 5)
+#' psi_hat <- apply(sspace_3_5, 1, \(x) psi(x / sum(x)))
+#' pvalue_psi0(.3, psi, psi_hat, .4, maxit = 10, chunksize = 100,
+#'  p_target = 1, SSpacearr = sspace_3_5, logC = logC, d_k = 3, warn = FALSE)
 
 pvalue_psi0 <- function(psi0, psi, psi_hat, psi_obs, alternative = "two.sided",
                         maxit, chunksize,
@@ -319,9 +408,10 @@ pvalue_psi0 <- function(psi0, psi, psi_hat, psi_obs, alternative = "two.sided",
                         SSpacearr, logC, d_k, psi_is_vectorized = FALSE,
                         theta_sampler = runif_dk_vects,
                         ga = FALSE, ga_gfactor = 1, ga_lrate = .01,
-                        ga_restart_every = 10
+                        ga_restart_every = 10, warn = TRUE
                         ) {
 
+  already_warned <- !FALSE
   II.lower <- psi_hat >= psi_obs
   II.upper <- psi_hat <= psi_obs
 
@@ -354,7 +444,7 @@ pvalue_psi0 <- function(psi0, psi, psi_hat, psi_obs, alternative = "two.sided",
 
       never_null <- FALSE
       theta_null <- this_theta[null_indicator, , drop = FALSE]
-      probs_null <- calc_prob_null2(theta_null,
+      probs_null <- calc_prob_null_fast(theta_null,
                                     SSpacearr, logC, II.lower)
 
       p.null[i] <- max(c(p.null, probs_null), na.rm = TRUE)
@@ -389,7 +479,7 @@ pvalue_psi0 <- function(psi0, psi, psi_hat, psi_obs, alternative = "two.sided",
     if(sum(!null_indicator) > 0 & isTRUE(alt_continue)) {
       never_alt <- FALSE
       theta_alt <- this_theta[!null_indicator, , drop = FALSE]
-      probs_alt <- calc_prob_null2(theta_alt,
+      probs_alt <- calc_prob_null_fast(theta_alt,
                                  SSpacearr, logC, II.upper)
     p.alt[i] <- max(c(p.alt, probs_alt), na.rm = TRUE)
     if(p.alt[i] > p_target) {
@@ -430,8 +520,9 @@ pvalue_psi0 <- function(psi0, psi, psi_hat, psi_obs, alternative = "two.sided",
 
 
   }
-  if(isTRUE(never_null) | isTRUE(never_alt)) {
-    warning("Never found a value from the null space, check results carefully and consider increasing iterations!")
+  if((isTRUE(never_null) | isTRUE(never_alt)) & !already_warned) {
+    already_warned <- TRUE
+    warning("Never found a value from the null space, results are probably not valid! Increase iterations or specify theta_null_points")
   }
 
   res <- c(null = max(p.null, na.rm = TRUE), alt = max(p.alt, na.rm = TRUE))
