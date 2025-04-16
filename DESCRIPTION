@@ -21,8 +21,8 @@ Description: We consider the problem where we observe k vectors
     multinomial random vector. For a given function psi which takes in the concatenated
     vector of multinomial probabilities and outputs a real number, this is a 
     Monte Carlo estimation procedure of an exact p-value and confidence interval.
-    The resulting inference is valid even in small samples, and when the parameter is 
-    on the boundary, and when the function is nondifferentiable at the parameter value, 
+    The resulting inference is valid even in small samples, when the parameter is 
+    on the boundary, and when the function is not differentiable at the parameter value, 
     all situations where asymptotic methods and the bootstrap would fail. 
 License: MIT + file LICENSE
 Encoding: UTF-8
