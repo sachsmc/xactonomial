@@ -1,7 +1,7 @@
 Package: xactonomial
 Type: Package
 Title: Improved Small-Sample Inference for Real-Valued Functions of Multinomial Parameters from k-Samples 
-Version: 1.0.0
+Version: 1.0.1
 Date: 2025-04-14
 Authors@R: 
     c(person(given = "Michael C",
@@ -12,8 +12,8 @@ Authors@R:
              family = "Fay", role = c("aut")), 
       person(given = "Erin E", 
              family = "Gabriel", role = c("aut")))
-URL: https://sachsmc.github.io/xactonomial
-BugReports: https://github.com/sachsmc/xactonomial/issues
+URL: https://sachsmc.github.io/xactonomial/
+BugReports: https://github.com/sachsmc/xactonomial/issues/
 Description: We consider the problem where we observe k vectors
     (possibly of different lengths), each representing an independent 
     multinomial random vector. For a given function psi which takes in the concatenated

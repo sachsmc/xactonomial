@@ -11,3 +11,4 @@
 ^src/Makevars$
 ^src/Makevars\.win$
 ^cran-comments\.md$
+^CRAN-SUBMISSION$
