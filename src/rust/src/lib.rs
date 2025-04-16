@@ -1,4 +1,6 @@
+pub mod rbindings;
 use extendr_api::prelude::*;
+use crate::rbindings::*;
 
 /// Enumerate the multinomial sample space
 /// @param d The dimension
@@ -47,18 +49,24 @@ fn sspace_multinom(d: u32, n: u32) -> Vec<u32> {
 #[extendr(use_rng = true)]
 fn sample_unit_simplex(d: u32) -> Vec<f64> {
 
-  let mut vals: Vec<f64> = (0..d-1).map(|_| unsafe { libR_sys::unif_rand() }).collect();
+  unsafe {
+      GetRNGstate();
+
+  let mut vals: Vec<f64> = (0..d-1).map(|_|
+    Rf_runif(0.0, 1.0)
+      ).collect();
   vals.push(1.0);
   vals.push(0.0);
   vals.sort_by(|a, b| a.partial_cmp(b).unwrap());
 
+  PutRNGstate();
   let mut valsret = vec![0.0; d as usize];
   for ii in 1..d+1 {
     let i = ii as usize;
     valsret[i-1] = vals[i] - vals[i - 1];
   }
   valsret
-
+  }
 }
 
 /// Sample n times from the unit simplex in d dimensions

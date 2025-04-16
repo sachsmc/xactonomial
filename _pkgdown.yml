@@ -10,3 +10,13 @@ navbar:
   structure:
     left:  [intro, reference, articles, news]
     right: [search, github]
+
+reference:
+- title: "Main function"
+  desc: Primary user-facing function
+  contents:
+    - xactonomial
+- title: "Helper functions"
+  desc: Everything else
+  contents:
+    - -xactonomial

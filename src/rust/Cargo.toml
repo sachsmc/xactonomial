@@ -11,4 +11,3 @@ name = 'xactonomial'
 
 [dependencies]
 extendr-api = '*'
-libR-sys = '0.7.*'

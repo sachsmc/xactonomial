@@ -11,7 +11,9 @@ Authors@R:
       person(given = "Michael P", 
              family = "Fay", role = c("aut")), 
       person(given = "Erin E", 
-             family = "Gabriel", role = c("aut")))
+             family = "Gabriel", role = c("aut")), 
+      person(given = "David B", 
+              family = "Dahl", role = "ctb", comment = "(rbindings.rs)"))
 URL: https://sachsmc.github.io/xactonomial/
 BugReports: https://github.com/sachsmc/xactonomial/issues/
 Description: We consider the problem where we observe k vectors

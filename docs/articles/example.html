@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">xactonomial</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -66,7 +66,7 @@
     
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/sachsmc/xactonomial" class="external-link">xactonomial</a></span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://sachsmc.github.io/xactonomial/">xactonomial</a></span><span class="op">)</span></span></code></pre></div>
 <p>We consider the following problem. Let
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>T</mi><mi>j</mi></msub><annotation encoding="application/x-tex">T_j</annotation></semantics></math>
 be distributed
@@ -172,10 +172,10 @@ vectorized this time. This improves the speed of xactonomial.</p>
 <span><span class="co">#&gt;  Monte-Carlo multinomial test</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; data:  data</span></span>
-<span><span class="co">#&gt; p-value = 0.07667</span></span>
+<span><span class="co">#&gt; p-value = 0.07305</span></span>
 <span><span class="co">#&gt; alternative hypothesis: true psi0 is not equal to 0.5</span></span>
 <span><span class="co">#&gt; 95 percent confidence interval:</span></span>
-<span><span class="co">#&gt;  0.4950000 0.9944113</span></span>
+<span><span class="co">#&gt;  0.4850000 0.9939617</span></span>
 <span><span class="co">#&gt; sample estimates:</span></span>
 <span><span class="co">#&gt; [1] 0.6708204</span></span></code></pre></div>
 <div class="section level2">
@@ -205,7 +205,7 @@ still works.</p>
 <span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu">sample_data2</span><span class="op">(</span>n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">60</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">data</span></span>
 <span><span class="co">#&gt; [[1]]</span></span>
-<span><span class="co">#&gt; [1] 17 28 15</span></span>
+<span><span class="co">#&gt; [1] 24 25 11</span></span>
 <span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/xactonomial.html">xactonomial</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">psi_causal</span>, psi_limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="fl">3</span>,<span class="fl">1</span><span class="op">)</span>, psi0 <span class="op">=</span> <span class="fl">.55</span>,</span>
 <span>                          maxit <span class="op">=</span> <span class="fl">100</span>, chunksize <span class="op">=</span> <span class="fl">1000</span>, itp_eps <span class="op">=</span> <span class="fl">.01</span><span class="op">)</span></span>
 <span></span>
@@ -214,12 +214,12 @@ still works.</p>
 <span><span class="co">#&gt;  Monte-Carlo multinomial test</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; data:  data</span></span>
-<span><span class="co">#&gt; p-value = 0.2431</span></span>
+<span><span class="co">#&gt; p-value = 0.05107</span></span>
 <span><span class="co">#&gt; alternative hypothesis: true psi0 is not equal to 0.55</span></span>
 <span><span class="co">#&gt; 95 percent confidence interval:</span></span>
-<span><span class="co">#&gt;  0.3362949 0.5983333</span></span>
+<span><span class="co">#&gt;  0.3346809 0.5483333</span></span>
 <span><span class="co">#&gt; sample estimates:</span></span>
-<span><span class="co">#&gt; [1] 0.4666667</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.4166667</span></span></code></pre></div>
 </div>
 <div class="section level2 unnumbered">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
