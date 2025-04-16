@@ -12,9 +12,9 @@ Authors@R:
              family = "Fay", role = c("aut")), 
       person(given = "Erin E", 
              family = "Gabriel", role = c("aut")))
-URL: https://github.com/sachsmc/xactonomial
+URL: https://sachsmc.github.io/xactonomial
 BugReports: https://github.com/sachsmc/xactonomial/issues
-Description: We consider the k sample multinomial problem where we observe k vectors
+Description: We consider the problem where we observe k vectors
     (possibly of different lengths), each representing an independent 
     multinomial random vector. For a given function psi which takes in the concatenated
     vector of multinomial probabilities and outputs a real number, this is a 

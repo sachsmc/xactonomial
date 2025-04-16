@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{itp_root}
 \alias{itp_root}
-\title{Find the root of the function f}
+\title{Find a univariate root of the function f}
 \usage{
 itp_root(
   f,

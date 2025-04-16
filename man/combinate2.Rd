@@ -7,7 +7,7 @@
 combinate2(X, Y)
 }
 \arguments{
-\item{X}{A list containing the elements Sspace (matrix), and logC (vector)}
+\item{X}{A list containing the elements Sspace (matrix), and logC (vector), the result of a call to \link{combinate}}
 
 \item{Y}{Matrix 2}
 }

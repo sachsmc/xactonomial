@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{combinate}
 \alias{combinate}
-\title{Calculate combinations of multinomial vectors}
+\title{Arrange all combinations of rows of two matrices}
 \usage{
 combinate(X, Y)
 }
@@ -17,8 +17,8 @@ A list containing Sspace, the sample space (vectors of counts), and
 }
 \description{
 Given X and Y, both matrices where the rows are counts of multinomial trials,
-produce all combinations rowwise, and calculate the log multinomial
-coefficients for the combination.
+produce all combinations rowwise, concatenate the rows into a new matrix, and
+calculate the log multinomial coefficients for the combination.
 }
 \examples{
 slist_2_3 <- combinate(matrix(sspace_multinom(2, 5), ncol = 2, byrow = TRUE),

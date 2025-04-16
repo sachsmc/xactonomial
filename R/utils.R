@@ -91,7 +91,7 @@ rdirich_dk_vects <- function(nsamp, alpha) {
 }
 
 
-#' Find the root of the function f
+#' Find a univariate root of the function f
 #'
 #' This finds the value \eqn{x \in [a, b]} such that \eqn{f(x) = 0} using the one-dimensional root finding ITP method (Interpolate Truncate Project). Also see \link[itp]{itp}.
 #'
@@ -188,11 +188,11 @@ itp_root <- function(f, a, b, k1 = .1, k2 = 2, n0 = 1,
 
 
 
-#' Calculate combinations of multinomial vectors
+#' Arrange all combinations of rows of two matrices
 #'
 #' Given X and Y, both matrices where the rows are counts of multinomial trials,
-#' produce all combinations rowwise, and calculate the log multinomial
-#' coefficients for the combination.
+#' produce all combinations rowwise, concatenate the rows into a new matrix, and
+#' calculate the log multinomial coefficients for the combination.
 #' @param X Matrix 1
 #' @param Y Matrix 2
 #' @returns A list containing Sspace, the sample space (vectors of counts), and
@@ -222,7 +222,7 @@ combinate <- function(X, Y) {
 
 #' Like \link{combinate} but adds on to previous call
 #'
-#' @param X A list containing the elements Sspace (matrix), and logC (vector)
+#' @param X A list containing the elements Sspace (matrix), and logC (vector), the result of a call to \link{combinate}
 #' @param Y Matrix 2
 #' @returns A list containing Sspace, the sample space (vectors of counts), and
 #'  logC, a vector of the log multinomial coefficients.
