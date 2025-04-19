@@ -1,8 +1,8 @@
 Package: xactonomial
 Type: Package
-Title: Improved Small-Sample Inference for Real-Valued Functions of Multinomial Parameters from k-Samples 
-Version: 1.0.1
-Date: 2025-04-14
+Title: Inference for Functions of Multinomial Parameters
+Version: 1.0.2
+Date: 2025-04-19
 Authors@R: 
     c(person(given = "Michael C",
              family = "Sachs",
@@ -16,14 +16,7 @@ Authors@R:
               family = "Dahl", role = "ctb", comment = "(rbindings.rs)"))
 URL: https://sachsmc.github.io/xactonomial/
 BugReports: https://github.com/sachsmc/xactonomial/issues/
-Description: We consider the problem where we observe k vectors
-    (possibly of different lengths), each representing an independent 
-    multinomial random vector. For a given function psi which takes in the concatenated
-    vector of multinomial probabilities and outputs a real number, this is a 
-    Monte Carlo estimation procedure of an exact p-value and confidence interval.
-    The resulting inference is valid even in small samples, when the parameter is 
-    on the boundary, and when the function is not differentiable at the parameter value, 
-    all situations where asymptotic methods and the bootstrap would fail. 
+Description: We consider the problem where we observe k vectors (possibly of different lengths), each representing an independent multinomial random vector. For a given function that takes in the concatenated vector of multinomial probabilities and outputs a real number, this is a Monte Carlo estimation procedure of an exact p-value and confidence interval. The resulting inference is valid even in small samples, when the parameter is on the boundary, and when the function is not differentiable at the parameter value, all situations where asymptotic methods and the bootstrap would fail. For more details see Sachs, Fay, and Gabriel (2025) <doi:10.48550/arXiv.2406.19141>.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
