@@ -26,6 +26,17 @@ test_that("confidence intervals for boundary problems", {
 
   expect_true(run2$p.value > 1e-8)
 
+  run3 <- xactonomial(data, psi_max, psi_limits = c(1 / 3, 1), psi0 = 1/ 2,
+                      conf_int = TRUE, theta_null_points = t(c(1/3, 1/3, 1/3)))
+
+  expect_false(abs(run3$conf.int[1] - 1/3) < 1e-8)
+
+  run4 <- xactonomial(data, psi_max, psi_limits = c(1 / 3, 1),
+                      conf_int = TRUE, p_value_limits = c(.1, 1e-8))
+
+  expect_true(abs(run4$conf.int[1] - 1/3) < 1e-8)
+
+
 })
 
 

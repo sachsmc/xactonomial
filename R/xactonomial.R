@@ -48,7 +48,11 @@
 #' measure 0. While it may have measure 0, it is not empty, and will contain a finite
 #' set of points. Thus you should provide the argument \code{theta_null_points} which is
 #' a matrix where the rows contain the finite set (sometimes 1) of points
-#' \eqn{\theta} such that \eqn{\tau(\theta) = \psi_0}. See examples.
+#' \eqn{\theta} such that \eqn{\tau(\theta) = \psi_0}. There is also an argument called
+#' \code{p_value_limits} that can be used to improve performance of confidence intervals
+#' around the boundary. This should be a vector of length 2 with the p-value for a test
+#' of psi_0 <= psi_limits[1] and the p-value for a test of psi_0 >= psi_limits[2].
+#' See examples.
 #'
 #' @section Optimization options:
 #' For p-value calculation, you can provide a parameter p_target, so that the sampling
@@ -82,6 +86,7 @@
 #' @param conf_level A number between 0 and 1, the confidence level.
 #' @param itp_maxit Maximum iterations to use in the ITP algorithm. Only relevant if conf_int = TRUE.
 #' @param itp_eps Epsilon value to use for the ITP algorithm. Only relevant if conf_int = TRUE.
+#' @param p_value_limits A vector of length 2 giving lower bounds on the p-values corresponding to psi0 at psi_limits. Only relvant if conf_int = TRUE.
 #' @param maxit Maximum number of iterations of the Monte Carlo procedure
 #' @param chunksize The number of samples to take from the parameter space at each iteration
 #' @param theta_sampler Function to take samples from the \eqn{Theta} parameter space. Default is \link{runif_dk_vects}.
@@ -137,12 +142,19 @@
 #' xactonomial(data, psi_max, psi_limits = c(1 / 3, 1), psi0 = 1/ 3,
 #'   conf_int = FALSE, theta_null_points = t(c(1/3, 1/3, 1/3)))
 #'
+#' ## in this case using p_value_limits improves confidence interval performance
+#'
+#'  xactonomial(data, psi_max, psi_limits = c(1 / 3, 1), psi0 = 1/ 3,
+#'   conf_int = TRUE, theta_null_points = t(c(1/3, 1/3, 1/3)),
+#'   p_value_limits = c(.1, 1e-8))
+#'
 #'
 
 xactonomial <- function(data, psi, statistic = NULL, psi0 = NULL,
                         alternative = c("two.sided", "less", "greater"),
                         psi_limits, theta_null_points = NULL, p_target = 1,
                         conf_int = TRUE, conf_level = .95, itp_maxit = 10, itp_eps = .005,
+                        p_value_limits = NULL,
                         maxit = 50, chunksize = 500,
                         theta_sampler = runif_dk_vects,
                         ga = TRUE, ga_gfactor = "adapt", ga_lrate = .01,
@@ -268,14 +280,18 @@ xactonomial <- function(data, psi, statistic = NULL, psi0 = NULL,
                 ga = ga, ga_gfactor = ga_gfactor, ga_lrate = ga_lrate,
                 ga_restart_every = ga_restart_every)[1] - alpha / 2}
 
-  if(!is.null(theta_null_points)) {
+  if(!is.null(p_value_limits)){
+    flower.boundary <- p_value_limits[1] - alpha / 2
+  } else if(!is.null(theta_null_points)) {
     if(!is.null(psi0) & abs(psi0 - psi_limits[1]) < 1e-8) {
 
     II.lower <- psi_hat >= psi_obs
 
     flower.boundary <- max(calc_prob_null_fast(theta_null_points, spacelist$Sspace, spacelist$logC,  II.lower)) -
       alpha / 2
-  }
+    } else {
+      flower.boundary <- -alpha / 2
+    }
   } else {
     flower.boundary <- -alpha / 2
   }
@@ -290,13 +306,16 @@ xactonomial <- function(data, psi, statistic = NULL, psi0 = NULL,
                 ga = ga, ga_gfactor = ga_gfactor, ga_lrate = ga_lrate,
                 ga_restart_every = ga_restart_every)[2] - alpha / 2
   }
-
-  if(!is.null(theta_null_points)) {
+  if(!is.null(p_value_limits)){
+    fupper.boundary <- p_value_limits[2] - alpha / 2
+  } else if(!is.null(theta_null_points)) {
     if(!is.null(psi0) & abs(psi0 - psi_limits[2]) < 1e-8) {
     II.upper <- psi_hat <= psi_obs
     fupper.boundary <- max(calc_prob_null_fast(theta_null_points, spacelist$Sspace, spacelist$logC,  II.upper)) -
       alpha / 2
 
+    } else {
+      fupper.boundary <- - alpha / 2
     }
   } else {
     fupper.boundary <- - alpha / 2

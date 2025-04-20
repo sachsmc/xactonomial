@@ -17,7 +17,7 @@ a confidence interval for psi."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">xactonomial</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -71,6 +71,7 @@ a confidence interval for psi.</p>
 <span>  conf_level <span class="op">=</span> <span class="fl">0.95</span>,</span>
 <span>  itp_maxit <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  itp_eps <span class="op">=</span> <span class="fl">0.005</span>,</span>
+<span>  p_value_limits <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  maxit <span class="op">=</span> <span class="fl">50</span>,</span>
 <span>  chunksize <span class="op">=</span> <span class="fl">500</span>,</span>
 <span>  theta_sampler <span class="op">=</span> <span class="va">runif_dk_vects</span>,</span>
@@ -134,6 +135,10 @@ the range of \(\psi(\theta)\)</p></dd>
 
 <dt id="arg-itp-eps">itp_eps<a class="anchor" aria-label="anchor" href="#arg-itp-eps"></a></dt>
 <dd><p>Epsilon value to use for the ITP algorithm. Only relevant if conf_int = TRUE.</p></dd>
+
+
+<dt id="arg-p-value-limits">p_value_limits<a class="anchor" aria-label="anchor" href="#arg-p-value-limits"></a></dt>
+<dd><p>A vector of length 2 giving lower bounds on the p-values corresponding to psi0 at psi_limits. Only relvant if conf_int = TRUE.</p></dd>
 
 
 <dt id="arg-maxit">maxit<a class="anchor" aria-label="anchor" href="#arg-maxit"></a></dt>
@@ -241,7 +246,11 @@ that sampling from the null parameter space is impossible because it is a set of
 measure 0. While it may have measure 0, it is not empty, and will contain a finite
 set of points. Thus you should provide the argument <code>theta_null_points</code> which is
 a matrix where the rows contain the finite set (sometimes 1) of points
-\(\theta\) such that \(\tau(\theta) = \psi_0\). See examples.</p>
+\(\theta\) such that \(\tau(\theta) = \psi_0\). There is also an argument called
+<code>p_value_limits</code> that can be used to improve performance of confidence intervals
+around the boundary. This should be a vector of length 2 with the p-value for a test
+of psi_0 &lt;= psi_limits[1] and the p-value for a test of psi_0 &gt;= psi_limits[2].
+See examples.</p>
     </div>
     <div class="section level2">
     <h2 id="optimization-options">Optimization options<a class="anchor" aria-label="anchor" href="#optimization-options"></a></h2>
@@ -327,6 +336,23 @@ The maximum number of iterations and epsilon can be controlled via <code>itp_max
 <span class="r-out co"><span class="r-pr">#&gt;</span> alternative hypothesis: true psi0 is not equal to 0.3333333</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 95 percent confidence interval:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  NA NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> sample estimates:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.48</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">## in this case using p_value_limits improves confidence interval performance</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span> <span class="fu">xactonomial</span><span class="op">(</span><span class="va">data</span>, <span class="va">psi_max</span>, psi_limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span> <span class="op">/</span> <span class="fl">3</span>, <span class="fl">1</span><span class="op">)</span>, psi0 <span class="op">=</span> <span class="fl">1</span><span class="op">/</span> <span class="fl">3</span>,</span></span>
+<span class="r-in"><span>  conf_int <span class="op">=</span> <span class="cn">TRUE</span>, theta_null_points <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="fl">3</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">3</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  p_value_limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.1</span>, <span class="fl">1e-8</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 	Exact multinomial test given a point null</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> data:  data</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p-value = 0.1331</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> alternative hypothesis: true psi0 is not equal to 0.3333333</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 95 percent confidence interval:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  0.3333333 0.6258333</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> sample estimates:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.48</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>

@@ -17,6 +17,7 @@ xactonomial(
   conf_level = 0.95,
   itp_maxit = 10,
   itp_eps = 0.005,
+  p_value_limits = NULL,
   maxit = 50,
   chunksize = 500,
   theta_sampler = runif_dk_vects,
@@ -53,6 +54,8 @@ the range of \eqn{\psi(\theta)}}
 \item{itp_maxit}{Maximum iterations to use in the ITP algorithm. Only relevant if conf_int = TRUE.}
 
 \item{itp_eps}{Epsilon value to use for the ITP algorithm. Only relevant if conf_int = TRUE.}
+
+\item{p_value_limits}{A vector of length 2 giving lower bounds on the p-values corresponding to psi0 at psi_limits. Only relvant if conf_int = TRUE.}
 
 \item{maxit}{Maximum number of iterations of the Monte Carlo procedure}
 
@@ -134,7 +137,11 @@ that sampling from the null parameter space is impossible because it is a set of
 measure 0. While it may have measure 0, it is not empty, and will contain a finite
 set of points. Thus you should provide the argument \code{theta_null_points} which is
 a matrix where the rows contain the finite set (sometimes 1) of points
-\eqn{\theta} such that \eqn{\tau(\theta) = \psi_0}. See examples.
+\eqn{\theta} such that \eqn{\tau(\theta) = \psi_0}. There is also an argument called
+\code{p_value_limits} that can be used to improve performance of confidence intervals
+around the boundary. This should be a vector of length 2 with the p-value for a test
+of psi_0 <= psi_limits[1] and the p-value for a test of psi_0 >= psi_limits[2].
+See examples.
 }
 
 \section{Optimization options}{
@@ -184,6 +191,12 @@ data <- list(c(13, 24, 13))
 
 xactonomial(data, psi_max, psi_limits = c(1 / 3, 1), psi0 = 1/ 3,
   conf_int = FALSE, theta_null_points = t(c(1/3, 1/3, 1/3)))
+
+## in this case using p_value_limits improves confidence interval performance
+
+ xactonomial(data, psi_max, psi_limits = c(1 / 3, 1), psi0 = 1/ 3,
+  conf_int = TRUE, theta_null_points = t(c(1/3, 1/3, 1/3)),
+  p_value_limits = c(.1, 1e-8))
 
 
 }

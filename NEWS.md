@@ -1,9 +1,12 @@
-# xactonomial 1.0.2
+# xactonomial 1.0.3
+
 * Fix malformed urls
 * Remove dependence on libR-sys
 * Change title and description
+* add argument p_value_limits for confidence intervals
 
 # xactonomial 1.0.0
+
 * First major release. Speedups with Rust implementation of sample space enumeration, gradient ascent, and stability of root finding algorithm. 
 
 # xactonomial 0.4.1
