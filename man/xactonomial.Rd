@@ -24,7 +24,8 @@ xactonomial(
   ga = TRUE,
   ga_gfactor = "adapt",
   ga_lrate = 0.01,
-  ga_restart_every = 10
+  ga_restart_every = 10,
+  seed = 503
 )
 }
 \arguments{
@@ -70,6 +71,8 @@ the range of \eqn{\psi(\theta)}}
 \item{ga_lrate}{The gradient ascent learning rate}
 
 \item{ga_restart_every}{Restart the gradient ascent after this number of iterations at a sample from \code{theta_sampler}}
+
+\item{seed}{Seed for the random number generator. Can be set to NULL in which case no seed is set.}
 }
 \value{
 An object of class "htest", which is a list with the following elements:

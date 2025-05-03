@@ -1,3 +1,7 @@
+# xactonomial 1.1.0
+* Change algorithm to give sensible results when no points from the null space are sampled from
+* Add seed argument with default so that things are reproducible by default
+
 # xactonomial 1.0.3
 
 * Fix malformed urls

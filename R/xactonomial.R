@@ -94,6 +94,7 @@
 #' @param ga_gfactor Concentration parameter scale in the gradient ascent algorithm. A number or "adapt"
 #' @param ga_lrate The gradient ascent learning rate
 #' @param ga_restart_every Restart the gradient ascent after this number of iterations at a sample from \code{theta_sampler}
+#' @param seed Seed for the random number generator. Can be set to NULL in which case no seed is set.
 #'
 #' @returns An object of class "htest", which is a list with the following elements:
 #' \describe{
@@ -158,7 +159,8 @@ xactonomial <- function(data, psi, statistic = NULL, psi0 = NULL,
                         maxit = 50, chunksize = 500,
                         theta_sampler = runif_dk_vects,
                         ga = TRUE, ga_gfactor = "adapt", ga_lrate = .01,
-                        ga_restart_every = 10
+                        ga_restart_every = 10,
+                        seed = 503
                         ) {
 
   alternative <- match.arg(alternative)
@@ -171,10 +173,16 @@ xactonomial <- function(data, psi, statistic = NULL, psi0 = NULL,
     stop("psi0 outside the possible range specified by psi_limits.")
   }}
 
-  if(!is.null(psi0) & (any(abs(psi0 - psi_limits) < 1e-8) & is.null(theta_null_points))) {
+  if(!is.null(psi0) & (any(abs(psi0 - psi_limits) < 1e-8) &
+                       (is.null(theta_null_points) & isTRUE(all.equal(theta_sampler, runif_dk_vects))))) {
 
 
-    warning("The psi0 value is on the boundary of the psi parameter space. The Monte Carlo method may not perform well in this case. Consider specifying theta_null_points which is a matrix of theta vectors at which psi(theta) = psi0.")
+    warning("The psi0 value is on the boundary of the psi parameter space. The default Monte Carlo method may not perform well in this case. Consider specifying theta_null_points which is a matrix of theta vectors at which psi(theta) = psi0, or specifying theta_sampler to sample directly from the null space.")
+
+  }
+
+  if(!is.null(seed)) {
+    set.seed(seed)
   }
 
   alpha <- 1 - conf_level
@@ -273,12 +281,14 @@ xactonomial <- function(data, psi, statistic = NULL, psi0 = NULL,
   confint <- if(conf_int) {
   flower <- function(x, psi, psi_hat, psi_obs, maxit, chunksize, p_target, SSpacearr, logC, d_k, psi_is_vectorized,
                      theta_sampler, ga, ga_gfactor, ga_lrate, ga_restart_every){
-    pvalue_psi0(x, psi, psi_hat, psi_obs, maxit = maxit, chunksize = chunksize,
+    pest <- pvalue_psi0(x, psi, psi_hat, psi_obs, maxit = maxit, chunksize = chunksize,
                 p_target = p_target, SSpacearr = SSpacearr, logC = logC,
                 d_k = d_k, psi_is_vectorized = psi_is_vectorized,
                 theta_sampler = theta_sampler,
                 ga = ga, ga_gfactor = ga_gfactor, ga_lrate = ga_lrate,
-                ga_restart_every = ga_restart_every)[1] - alpha / 2}
+                ga_restart_every = ga_restart_every, warn = FALSE)[1]
+    (if(is.na(pest)) 0 else pest) - alpha / 2
+    }
 
   if(!is.null(p_value_limits)){
     flower.boundary <- p_value_limits[1] - alpha / 2
@@ -299,12 +309,13 @@ xactonomial <- function(data, psi, statistic = NULL, psi0 = NULL,
 
   fupper <- function(x, psi, psi_hat, psi_obs, maxit, chunksize, p_target, SSpacearr, logC, d_k, psi_is_vectorized,
                      theta_sampler, ga, ga_gfactor, ga_lrate, ga_restart_every){
-    pvalue_psi0(x, psi, psi_hat, psi_obs, maxit = maxit, chunksize = chunksize,
+    pest <- pvalue_psi0(x, psi, psi_hat, psi_obs, maxit = maxit, chunksize = chunksize,
                 p_target = p_target, SSpacearr = SSpacearr, logC = logC,
                 d_k = d_k, psi_is_vectorized = psi_is_vectorized,
                 theta_sampler = theta_sampler,
                 ga = ga, ga_gfactor = ga_gfactor, ga_lrate = ga_lrate,
-                ga_restart_every = ga_restart_every)[2] - alpha / 2
+                ga_restart_every = ga_restart_every, warn = FALSE)[2]
+    (if(is.na(pest)) 0 else pest) - alpha / 2
   }
   if(!is.null(p_value_limits)){
     fupper.boundary <- p_value_limits[2] - alpha / 2
@@ -433,12 +444,12 @@ pvalue_psi0 <- function(psi0, psi, psi_hat, psi_obs, alternative = "two.sided",
                         ga_restart_every = 10, warn = TRUE
                         ) {
 
-  already_warned <- !FALSE
+  already_warned <- !warn
   II.lower <- psi_hat >= psi_obs
   II.upper <- psi_hat <= psi_obs
 
-  p.null <- rep(1 / (maxit * chunksize), maxit)
-  p.alt <- rep(1 / (maxit * chunksize), maxit)
+  p.null <- rep(0, maxit)
+  p.alt <- rep(0, maxit)
 
   theta_cands <- theta_sampler(d_k, chunksize)
   null_continue <- alt_continue <- TRUE
@@ -544,10 +555,13 @@ pvalue_psi0 <- function(psi0, psi, psi_hat, psi_obs, alternative = "two.sided",
   }
   if((isTRUE(never_null) | isTRUE(never_alt)) & !already_warned) {
     already_warned <- TRUE
-    warning("Never found a value from the null space, results are probably not valid! Increase iterations or specify theta_null_points")
+    warning("Never found a value from the null space, results are not valid! Increase iterations, specify theta_null_points, or specify theta_sampler")
   }
 
-  res <- c(null = max(p.null, na.rm = TRUE), alt = max(p.alt, na.rm = TRUE))
+  outnull <- if(isTRUE(never_null)) NA else max(p.null, na.rm = TRUE)
+  outalt <- if(isTRUE(never_alt)) NA else max(p.alt, na.rm = TRUE)
+
+  res <- c(null = outnull, alt = outalt)
   attr(res, "p.sequence") <- list(p.null = p.null[1:null_stop], p.alt = p.alt[1:alt_stop])
   res
 }

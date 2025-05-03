@@ -20,7 +20,7 @@ test_that("confidence intervals for boundary problems", {
   }
 
   data <- list(c(13, 24, 13))
-  expect_warning(xactonomial(data, psi_max, psi_limits = c(1 / 3, 1), psi0 = 1/ 3, conf_int = FALSE, maxit = 10))
+  expect_warning(expect_warning(xactonomial(data, psi_max, psi_limits = c(1 / 3, 1), psi0 = 1/ 3, conf_int = FALSE, maxit = 10)))
   run2 <- xactonomial(data, psi_max, psi_limits = c(1 / 3, 1), psi0 = 1/ 3,
               conf_int = FALSE, theta_null_points = t(c(1/3, 1/3, 1/3)))
 
