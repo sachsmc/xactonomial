@@ -6,7 +6,7 @@
 \usage{
 xactonomial(
   data,
-  psi,
+  f_param,
   statistic = NULL,
   psi0 = NULL,
   alternative = c("two.sided", "less", "greater"),
@@ -32,19 +32,19 @@ xactonomial(
 \item{data}{A list with k elements representing the vectors of counts of a
 k-sample multinomial}
 
-\item{psi}{Function that takes in parameters and outputs a real
+\item{f_param}{Function that takes in parameters and outputs psi, a real
 valued number for each parameter. Can be vectorized rowwise for a matrix or not.}
 
-\item{statistic}{Function that takes in a matrix with data vectors in the rows, and outputs a vector with the number of rows in the matrix. If NULL, will be inferred from psi by plugging in the empirical proportions.}
+\item{statistic}{Function that takes in a matrix with data vectors in the rows, and outputs a vector with the number of rows in the matrix. If NULL, will be inferred from \code{f_param} by plugging in the empirical proportions.}
 
 \item{psi0}{The null hypothesis value for the parameter being tested.}
 
 \item{alternative}{a character string specifying the alternative hypothesis, must be one of "two.sided" (default), "greater" or "less"}
 
 \item{psi_limits}{A vector of length 2 giving the lower and upper limits of
-the range of \eqn{\psi(\theta)}}
+the range of \eqn{\tau(\theta)}}
 
-\item{theta_null_points}{An optional matrix where each row is a theta value that gives psi(theta) = psi0. If this is supplied and psi0 = one of the boundary points, then a truly exact p-value will be calculated.}
+\item{theta_null_points}{An optional matrix where each row is a theta value that gives \code{f_param(theta) = psi0}. If this is supplied and psi0 = one of \code{psi_limits}, then a truly exact p-value will be calculated.}
 
 \item{p_target}{If a p-value is found that is greater than p_target, terminate the algorithm early.}
 
@@ -90,10 +90,10 @@ An object of class "htest", which is a list with the following elements:
 \description{
 We consider the k sample multinomial problem where we observe k vectors
 (possibly of different lengths), each representing an independent sample from
-a multinomial. For a given function psi which takes in the concatenated
-vector of multinomial probabilities and outputs a real number, we are
-interested in computing a p-value for a test of psi >= psi0, and constructing
-a confidence interval for psi.
+a multinomial. For a given function \eqn{\tau(\theta)} which takes in the concatenated
+vector of multinomial probabilities \eqn{\theta} and outputs a real number, we are
+interested in computing a p-value for a test of \eqn{\tau(\theta) = \psi \geq \psi_0}, and constructing
+a confidence interval for \eqn{\psi}.
 }
 \details{
 Let \eqn{T_j} be distributed
@@ -109,9 +109,9 @@ denote a real-valued statistic that defines the ordering of the sample space.
 Tne default choice of the statistic is to estimate \eqn{\boldsymbol{\theta}}
 with the sample proportions and plug them into \eqn{\tau(\boldsymbol{\theta})}.
 This function calculates a p value for a test of the null hypothesis
-\eqn{H_0: \psi(\boldsymbol{\theta}) \neq \psi_0} for the two sided case,
-\eqn{H_0: \psi(\boldsymbol{\theta}) \leq \psi_0} for the case \code{alternative = "greater"}, and
-\eqn{H_0: \psi(\boldsymbol{\theta}) \geq \psi_0} for the case \code{alternative = "less"}.
+\eqn{H_0: \psi \neq \psi_0} for the two sided case,
+\eqn{H_0: \psi \leq \psi_0} for the case \code{alternative = "greater"}, and
+\eqn{H_0: \psi \geq \psi_0} for the case \code{alternative = "less"}.
 We make no assumptions and do not rely on large sample approximations.
 It also optionally constructs a \eqn{1 - \alpha} percent confidence interval for \eqn{\psi}.
 The computation is somewhat involved so it is best for small sample sizes. The
@@ -121,10 +121,10 @@ where the statistic is as or more extreme than the observed statistic given data
 is basically the definition of a p-value implemented with Monte Carlo methods. Some
 options for speeding up the calculation are available.
 }
-\section{Specifying the function psi}{
+\section{Specifying the function \eqn{\tau(\cdot)}}{
 
-The psi parameter should be a function that either: 1) takes a vector of length
-sum(d_j) (the total number of bins) and outputs a single number, or 2) takes a
+This function is the \code{f_param} argument and should be a function that either: 1)
+takes a vector of length sum(d_j) (the total number of bins) and outputs a single number, or 2) takes a
 matrix with number of columns equal to sum(d_j), and arbitrary number of rows and
 outputs a vector with length equal to the number of rows. In other words, psi can be
 not vectorized or it can be vectorized by row. Writing it so that it is vectorized
@@ -133,7 +133,7 @@ can speed up the calculation. See examples.
 
 \section{Boundary issues}{
 
-It is required to provide psi_limits, a vector of length 2 giving the
+It is required to provide \code{psi_limits}, a vector of length 2 giving the
 smallest and largest possible values that the function psi can take, e.g., \code{c(0, 1)}.
 If the null hypothesis value psi0 is at one of the limits, it is often the case
 that sampling from the null parameter space is impossible because it is a set of
@@ -165,39 +165,39 @@ The maximum number of iterations and epsilon can be controlled via \code{itp_max
 }
 
 \examples{
-psi_ba <- function(theta) {
+tau_ba <- function(theta) {
   theta1 <- theta[1:4]
   theta2 <- theta[5:8]
   sum(sqrt(theta1 * theta2))
   }
 data <- list(T1 = c(2,1,2,1), T2 = c(0,1,3,3))
-xactonomial(data, psi_ba, psi_limits = c(0, 1), psi0 = .5,
+xactonomial(data, tau_ba, psi_limits = c(0, 1), psi0 = .5,
   conf_int = FALSE, maxit = 15, chunksize = 200)
 
 # vectorized by row
-psi_ba_v <- function(theta) {
+tau_ba_v <- function(theta) {
 theta1 <- theta[,1:4, drop = FALSE]
 theta2 <- theta[,5:8, drop = FALSE]
 rowSums(sqrt(theta1 * theta2))
 }
 data <- list(T1 = c(2,1,2,1), T2 = c(0,1,3,3))
-xactonomial(data, psi_ba_v, psi_limits = c(0, 1), psi0 = .5,
+xactonomial(data, tau_ba_v, psi_limits = c(0, 1), psi0 = .5,
  conf_int = FALSE, maxit = 10, chunksize = 200)
 
  # example of using theta_null_points
  # psi = 1/3 occurs when all probs = 1/3
- psi_max <- function(pp) {
+ tau_max <- function(pp) {
    max(pp)
  }
 
 data <- list(c(13, 24, 13))
 
-xactonomial(data, psi_max, psi_limits = c(1 / 3, 1), psi0 = 1/ 3,
+xactonomial(data, tau_max, psi_limits = c(1 / 3, 1), psi0 = 1/ 3,
   conf_int = FALSE, theta_null_points = t(c(1/3, 1/3, 1/3)))
 
 ## in this case using p_value_limits improves confidence interval performance
 
- xactonomial(data, psi_max, psi_limits = c(1 / 3, 1), psi0 = 1/ 3,
+ xactonomial(data, tau_max, psi_limits = c(1 / 3, 1), psi0 = 1/ 3,
   conf_int = TRUE, theta_null_points = t(c(1/3, 1/3, 1/3)),
   p_value_limits = c(.1, 1e-8))
 

@@ -32,8 +32,8 @@ calc_prob_null <- function(theta_cands, SSpacearr, logC, II) {
 #'   the columns
 #' @param SSpacearr A matrix with the sample space for the given size of the
 #'   problem
-#' @param II logical vector of sample space psi being more extreme than the
-#'   observed psi
+#' @param II logical vector of statistic for elements of sample space statistic being more extreme than the
+#'   observed statistic
 #'
 #' @returns A matrix the same dimension as theta_cands
 #'
@@ -87,8 +87,8 @@ calc_prob_null_gradient <- function(theta_cands, SSpacearr, II) {
 #'   the columns
 #' @param SSpacearr A matrix with the sample space for the given size of the
 #'   problem
-#' @param II logical vector of sample space psi being more extreme than the
-#'   observed psi
+#' @param II logical vector of statistic for elements of sample space statistic being more extreme than the
+#'   observed statistic
 #' @param logC log multinomial coefficient for each element of the sample space
 #'
 #' @returns A numeric vector of probabilities

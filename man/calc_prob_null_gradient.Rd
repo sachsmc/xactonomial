@@ -13,8 +13,8 @@ the columns}
 \item{SSpacearr}{A matrix with the sample space for the given size of the
 problem}
 
-\item{II}{logical vector of sample space psi being more extreme than the
-observed psi}
+\item{II}{logical vector of statistic for elements of sample space statistic being more extreme than the
+observed statistic}
 }
 \value{
 A matrix the same dimension as theta_cands

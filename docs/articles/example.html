@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">xactonomial</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -135,7 +135,7 @@ code allows us to sample the data and compute
 <span>  </span>
 <span><span class="op">}</span></span>
 <span></span>
-<span><span class="va">psi_bc</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">theta</span><span class="op">)</span> <span class="op">{</span></span>
+<span><span class="va">tau_bc</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">theta</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  </span>
 <span>  <span class="va">theta1</span> <span class="op">&lt;-</span> <span class="va">theta</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span></span>
 <span>  <span class="va">theta2</span> <span class="op">&lt;-</span> <span class="va">theta</span><span class="op">[</span><span class="fl">5</span><span class="op">:</span><span class="fl">8</span><span class="op">]</span></span>
@@ -143,14 +143,14 @@ code allows us to sample the data and compute
 <span>  </span>
 <span><span class="op">}</span></span>
 <span></span>
-<span><span class="fu">psi_bc</span><span class="op">(</span><span class="va">true_theta</span><span class="op">)</span></span>
+<span><span class="fu">tau_bc</span><span class="op">(</span><span class="va">true_theta</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 0.8464102</span></span></code></pre></div>
 <p>We can do the bootstrap, but it actually performs quite poorly in
 this situation. We are going to define the same psi function but
 vectorized this time. This improves the speed of xactonomial.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="va">psi_bc_v</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">theta</span><span class="op">)</span> <span class="op">{</span></span>
+<span><span class="va">tau_bc_v</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">theta</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  </span>
 <span>  <span class="va">theta1</span> <span class="op">&lt;-</span> <span class="va">theta</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">4</span>, drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
 <span>  <span class="va">theta2</span> <span class="op">&lt;-</span> <span class="va">theta</span><span class="op">[</span>,<span class="fl">5</span><span class="op">:</span><span class="fl">8</span>, drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
@@ -165,7 +165,7 @@ vectorized this time. This improves the speed of xactonomial.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $T2</span></span>
 <span><span class="co">#&gt; [1] 0 0 6 6</span></span>
-<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/xactonomial.html">xactonomial</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">psi_bc_v</span>, psi_limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span><span class="op">)</span>, conf_int <span class="op">=</span> <span class="cn">TRUE</span>, psi0 <span class="op">=</span> <span class="fl">.5</span>,</span>
+<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/xactonomial.html">xactonomial</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">tau_bc_v</span>, psi_limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span><span class="op">)</span>, conf_int <span class="op">=</span> <span class="cn">TRUE</span>, psi0 <span class="op">=</span> <span class="fl">.5</span>,</span>
 <span>                          maxit <span class="op">=</span> <span class="fl">50</span>, chunksize <span class="op">=</span> <span class="fl">100</span>, ga_restart_every <span class="op">=</span> <span class="fl">10</span>, itp_eps <span class="op">=</span> <span class="fl">.01</span><span class="op">)</span></span>
 <span><span class="va">results</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -187,13 +187,13 @@ When two of the parameters are equal, the function is nondifferentiable,
 so bootstrap and other asymptotic methods will fail while our method
 still works.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">psi_causal</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">pp</span><span class="op">)</span> <span class="op">{</span></span>
+<code class="sourceCode R"><span><span class="va">tau_max</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">pp</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  </span>
 <span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">pp</span><span class="op">)</span></span>
 <span>  </span>
 <span><span class="op">}</span></span>
 <span></span>
-<span><span class="va">true_psi_causal</span> <span class="op">&lt;-</span> <span class="fu">psi_causal</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.4</span>, <span class="fl">.4</span>, <span class="fl">.2</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">true_tau</span> <span class="op">&lt;-</span> <span class="fu">tau_max</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.4</span>, <span class="fl">.4</span>, <span class="fl">.2</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">sample_data2</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">n</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  </span>
@@ -206,7 +206,7 @@ still works.</p>
 <span><span class="va">data</span></span>
 <span><span class="co">#&gt; [[1]]</span></span>
 <span><span class="co">#&gt; [1] 27 25  8</span></span>
-<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/xactonomial.html">xactonomial</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">psi_causal</span>, psi_limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="fl">3</span>,<span class="fl">1</span><span class="op">)</span>, psi0 <span class="op">=</span> <span class="fl">.55</span>,</span>
+<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/xactonomial.html">xactonomial</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">tau_max</span>, psi_limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="fl">3</span>,<span class="fl">1</span><span class="op">)</span>, psi0 <span class="op">=</span> <span class="fl">.55</span>,</span>
 <span>                          maxit <span class="op">=</span> <span class="fl">100</span>, chunksize <span class="op">=</span> <span class="fl">1000</span>, itp_eps <span class="op">=</span> <span class="fl">.01</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">results</span></span>
@@ -235,11 +235,11 @@ boundary.</p>
 The upper p-value is clearly less than
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mi>/</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">\alpha / 2</annotation></semantics></math>.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">p.ll</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/xactonomial.html">xactonomial</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">psi_causal</span>, psi_limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="fl">3</span>,<span class="fl">1</span><span class="op">)</span>, psi0 <span class="op">=</span> <span class="fl">1</span><span class="op">/</span><span class="fl">3</span>, conf_int <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<code class="sourceCode R"><span><span class="va">p.ll</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/xactonomial.html">xactonomial</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">tau_max</span>, psi_limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="fl">3</span>,<span class="fl">1</span><span class="op">)</span>, psi0 <span class="op">=</span> <span class="fl">1</span><span class="op">/</span><span class="fl">3</span>, conf_int <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>   itp_eps <span class="op">=</span> <span class="fl">.01</span>, theta_null_points <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="fl">3</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span>, </span>
 <span>   alternative <span class="op">=</span> <span class="st">"greater"</span><span class="op">)</span><span class="op">$</span><span class="va">p.value</span></span>
 <span></span>
-<span><span class="fu"><a href="../reference/xactonomial.html">xactonomial</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">psi_causal</span>, psi_limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="fl">3</span>,<span class="fl">1</span><span class="op">)</span>, psi0 <span class="op">=</span> <span class="fl">1</span>, conf_int <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span><span class="fu"><a href="../reference/xactonomial.html">xactonomial</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">tau_max</span>, psi_limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="fl">3</span>,<span class="fl">1</span><span class="op">)</span>, psi0 <span class="op">=</span> <span class="fl">1</span>, conf_int <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>   itp_eps <span class="op">=</span> <span class="fl">.01</span>, theta_null_points <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span>,<span class="fl">0</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">0</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span>, </span>
 <span>   alternative <span class="op">=</span> <span class="st">"less"</span><span class="op">)</span><span class="op">$</span><span class="va">p.value</span></span>
 <span><span class="co">#&gt; [1] 0</span></span></code></pre></div>
@@ -248,7 +248,7 @@ do not need to be precise, the important thing is when one of them is
 greater than
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mi>/</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">\alpha / 2</annotation></semantics></math>.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/xactonomial.html">xactonomial</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">psi_causal</span>, psi_limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="fl">3</span>,<span class="fl">1</span><span class="op">)</span>, p_value_limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">p.ll</span>, <span class="fl">1e-8</span><span class="op">)</span>,</span>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/xactonomial.html">xactonomial</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">tau_max</span>, psi_limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="fl">3</span>,<span class="fl">1</span><span class="op">)</span>, p_value_limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">p.ll</span>, <span class="fl">1e-8</span><span class="op">)</span>,</span>
 <span>                          maxit <span class="op">=</span> <span class="fl">100</span>, chunksize <span class="op">=</span> <span class="fl">1000</span>, itp_eps <span class="op">=</span> <span class="fl">.01</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  Monte-Carlo multinomial test</span></span>

@@ -27,13 +27,13 @@ This is a basic example which shows you how to use the main function:
 ``` r
 library(xactonomial)
 
-psi_ba <- function(theta) {
+tau_ba <- function(theta) {
    theta1 <- theta[1:4]
    theta2 <- theta[5:8]
    sum(sqrt(theta1 * theta2))
    }
 
 data <- list(T1 = c(2,1,2,1), T2 = c(0,1,3,3))
-xactonomial(data, psi_ba, psi_limits = c(0, 1), maxit = 5, chunksize = 20)
+xactonomial(data, f_param = tau_ba, psi_limits = c(0, 1), maxit = 5, chunksize = 20)
 ```
 

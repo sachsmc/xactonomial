@@ -15,8 +15,8 @@ problem}
 
 \item{logC}{log multinomial coefficient for each element of the sample space}
 
-\item{II}{logical vector of sample space psi being more extreme than the
-observed psi}
+\item{II}{logical vector of statistic for elements of sample space statistic being more extreme than the
+observed statistic}
 }
 \value{
 A numeric vector of probabilities

@@ -6,7 +6,7 @@
 \usage{
 pvalue_psi0(
   psi0,
-  psi,
+  f_param,
   psi_hat,
   psi_obs,
   alternative = "two.sided",
@@ -16,7 +16,7 @@ pvalue_psi0(
   SSpacearr,
   logC,
   d_k,
-  psi_is_vectorized = FALSE,
+  f_is_vectorized = FALSE,
   theta_sampler = runif_dk_vects,
   ga = FALSE,
   ga_gfactor = 1,
@@ -28,7 +28,7 @@ pvalue_psi0(
 \arguments{
 \item{psi0}{The null hypothesis value for the parameter being tested.}
 
-\item{psi}{Function that takes in parameters and outputs a real
+\item{f_param}{Function that takes in parameters and outputs a real
 valued number for each parameter. Can be vectorized rowwise for a matrix or not.}
 
 \item{psi_hat}{The vector of psi values at each element of the sample space}
@@ -49,7 +49,7 @@ valued number for each parameter. Can be vectorized rowwise for a matrix or not.
 
 \item{d_k}{The vector of dimensions}
 
-\item{psi_is_vectorized}{Is psi vectorized by row?}
+\item{f_is_vectorized}{Is f_param vectorized by row?}
 
 \item{theta_sampler}{Function to take samples from the \eqn{Theta} parameter space. Default is \link{runif_dk_vects}.}
 
@@ -72,9 +72,9 @@ Compute a p value for the test of psi <= psi0 (lower = TRUE) or psi >= psi0 (low
 \examples{
 
 sspace_3_5 <- matrix(sspace_multinom(3, 5), ncol = 3, byrow = TRUE)
-psi <- function(theta) max(theta)
+f_max <- function(theta) max(theta)
 logC <- apply(sspace_3_5, 1, log_multinom_coef, sumx = 5)
-psi_hat <- apply(sspace_3_5, 1, \(x) psi(x / sum(x)))
-pvalue_psi0(.3, psi, psi_hat, .4, maxit = 10, chunksize = 100,
+psi_hat <- apply(sspace_3_5, 1, \(x) f_max(x / sum(x)))
+pvalue_psi0(.3, f_max, psi_hat, .4, maxit = 10, chunksize = 100,
  p_target = 1, SSpacearr = sspace_3_5, logC = logC, d_k = 3, warn = FALSE)
 }

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">xactonomial</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -45,7 +45,7 @@
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">pvalue_psi0</span><span class="op">(</span></span>
 <span>  <span class="va">psi0</span>,</span>
-<span>  <span class="va">psi</span>,</span>
+<span>  <span class="va">f_param</span>,</span>
 <span>  <span class="va">psi_hat</span>,</span>
 <span>  <span class="va">psi_obs</span>,</span>
 <span>  alternative <span class="op">=</span> <span class="st">"two.sided"</span>,</span>
@@ -55,7 +55,7 @@
 <span>  <span class="va">SSpacearr</span>,</span>
 <span>  <span class="va">logC</span>,</span>
 <span>  <span class="va">d_k</span>,</span>
-<span>  psi_is_vectorized <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  f_is_vectorized <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  theta_sampler <span class="op">=</span> <span class="va">runif_dk_vects</span>,</span>
 <span>  ga <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  ga_gfactor <span class="op">=</span> <span class="fl">1</span>,</span>
@@ -73,7 +73,7 @@
 <dd><p>The null hypothesis value for the parameter being tested.</p></dd>
 
 
-<dt id="arg-psi">psi<a class="anchor" aria-label="anchor" href="#arg-psi"></a></dt>
+<dt id="arg-f-param">f_param<a class="anchor" aria-label="anchor" href="#arg-f-param"></a></dt>
 <dd><p>Function that takes in parameters and outputs a real
 valued number for each parameter. Can be vectorized rowwise for a matrix or not.</p></dd>
 
@@ -114,8 +114,8 @@ valued number for each parameter. Can be vectorized rowwise for a matrix or not.
 <dd><p>The vector of dimensions</p></dd>
 
 
-<dt id="arg-psi-is-vectorized">psi_is_vectorized<a class="anchor" aria-label="anchor" href="#arg-psi-is-vectorized"></a></dt>
-<dd><p>Is psi vectorized by row?</p></dd>
+<dt id="arg-f-is-vectorized">f_is_vectorized<a class="anchor" aria-label="anchor" href="#arg-f-is-vectorized"></a></dt>
+<dd><p>Is f_param vectorized by row?</p></dd>
 
 
 <dt id="arg-theta-sampler">theta_sampler<a class="anchor" aria-label="anchor" href="#arg-theta-sampler"></a></dt>
@@ -151,10 +151,10 @@ valued number for each parameter. Can be vectorized rowwise for a matrix or not.
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">sspace_3_5</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="sspace_multinom.html">sspace_multinom</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">5</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">3</span>, byrow <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">psi</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">theta</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">theta</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">f_max</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">theta</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">theta</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">logC</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">sspace_3_5</span>, <span class="fl">1</span>, <span class="va">log_multinom_coef</span>, sumx <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">psi_hat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">sspace_3_5</span>, <span class="fl">1</span>, \<span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu">psi</span><span class="op">(</span><span class="va">x</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">pvalue_psi0</span><span class="op">(</span><span class="fl">.3</span>, <span class="va">psi</span>, <span class="va">psi_hat</span>, <span class="fl">.4</span>, maxit <span class="op">=</span> <span class="fl">10</span>, chunksize <span class="op">=</span> <span class="fl">100</span>,</span></span>
+<span class="r-in"><span><span class="va">psi_hat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">sspace_3_5</span>, <span class="fl">1</span>, \<span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu">f_max</span><span class="op">(</span><span class="va">x</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">pvalue_psi0</span><span class="op">(</span><span class="fl">.3</span>, <span class="va">f_max</span>, <span class="va">psi_hat</span>, <span class="fl">.4</span>, maxit <span class="op">=</span> <span class="fl">10</span>, chunksize <span class="op">=</span> <span class="fl">100</span>,</span></span>
 <span class="r-in"><span> p_target <span class="op">=</span> <span class="fl">1</span>, SSpacearr <span class="op">=</span> <span class="va">sspace_3_5</span>, logC <span class="op">=</span> <span class="va">logC</span>, d_k <span class="op">=</span> <span class="fl">3</span>, warn <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      null       alt </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        NA 0.3702166 </span>
