@@ -2,7 +2,7 @@
 % Please edit documentation in R/xactonomial.R
 \name{pvalue_psi0}
 \alias{pvalue_psi0}
-\title{Compute a p value for the test of psi <= psi0 (lower = TRUE) or psi >= psi0 (lower = FALSE)}
+\title{Compute a p value for the test of psi <= psi0 and/or psi >= psi0}
 \usage{
 pvalue_psi0(
   psi0,
@@ -67,7 +67,7 @@ valued number for each parameter. Can be vectorized rowwise for a matrix or not.
 A vector with two p-values, one for the lower, and one for the greater
 }
 \description{
-Compute a p value for the test of psi <= psi0 (lower = TRUE) or psi >= psi0 (lower = FALSE)
+Compute a p value for the test of psi <= psi0 and/or psi >= psi0
 }
 \examples{
 

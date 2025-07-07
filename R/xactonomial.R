@@ -86,10 +86,10 @@
 #' @param conf_level A number between 0 and 1, the confidence level.
 #' @param itp_maxit Maximum iterations to use in the ITP algorithm. Only relevant if conf_int = TRUE.
 #' @param itp_eps Epsilon value to use for the ITP algorithm. Only relevant if conf_int = TRUE.
-#' @param p_value_limits A vector of length 2 giving lower bounds on the p-values corresponding to psi0 at psi_limits. Only relvant if conf_int = TRUE.
+#' @param p_value_limits A vector of length 2 giving lower bounds on the p-values corresponding to psi0 at psi_limits. Only relevant if conf_int = TRUE.
 #' @param maxit Maximum number of iterations of the Monte Carlo procedure
 #' @param chunksize The number of samples to take from the parameter space at each iteration
-#' @param theta_sampler Function to take samples from the \eqn{Theta} parameter space. Default is \link{runif_dk_vects}.
+#' @param theta_sampler Function to take samples from the \eqn{Theta} parameter space. Default is \link{runif_dk_vects}. Must be a function of two parameters \code{d_k} a vector of dimensions, and \code{chunksize} the number of samples to take, and return a matrix with \code{sum(d_k)} columns and \code{chunksize} rows. See examples.
 #' @param ga Logical, if TRUE, uses gradient ascent.
 #' @param ga_gfactor Concentration parameter scale in the gradient ascent algorithm. A number or "adapt"
 #' @param ga_lrate The gradient ascent learning rate
@@ -149,6 +149,15 @@
 #'   conf_int = TRUE, theta_null_points = t(c(1/3, 1/3, 1/3)),
 #'   p_value_limits = c(.1, 1e-8))
 #'
+#' ## specifying theta_sampler
+#'
+#' dirich_sampler <- function(d_k, chunksize){
+#'  rdirich_dk_vects(chunksize, list(1:4 + 1))
+#' }
+#'
+#' xactonomial(list(1:4),tau_max,
+#'             psi_limits = c(0.25,1),
+#'             theta_sampler = dirich_sampler)
 #'
 
 xactonomial <- function(data, f_param, statistic = NULL, psi0 = NULL,
@@ -224,6 +233,7 @@ xactonomial <- function(data, f_param, statistic = NULL, psi0 = NULL,
 
   if(is.null(statistic)) { ## compute f_param with empirical proportions
 
+    user_stat <- FALSE
     statistic <- function(df) {
       denom <- rep.int(n_k, d_k)
       if(is.matrix(df)) {
@@ -244,13 +254,15 @@ xactonomial <- function(data, f_param, statistic = NULL, psi0 = NULL,
 
     }
 
+  } else {
+    user_stat <- TRUE
   }
 
   psi_obs <- statistic(unlist(data))
 
   psi_hat <- statistic(spacelist$Sspace)
 
-  method <- "Monte-Carlo multinomial test"
+  method <- "Monte Carlo multinomial test"
   pvalues <- if(!is.null(psi0)) {
 
     if(!is.null(theta_null_points) && any(abs(psi0 - psi_limits) < 1e-8)) {
@@ -381,12 +393,48 @@ xactonomial <- function(data, f_param, statistic = NULL, psi0 = NULL,
   }
 
 
+  if(missing(p_value_limits)) {
+  lowerp <-   pvalue_psi0(psi0 = lower_limit, f_param = f_param, psi_hat = psi_hat, psi_obs = psi_obs,
+                          alternative = "less",
+                          maxit = maxit, chunksize = chunksize,
+                          p_target = p_target, SSpacearr = spacelist$Sspace, logC = spacelist$logC,
+                          d_k = d_k, f_is_vectorized = f_is_vectorized,
+                          theta_sampler = theta_sampler,
+                          ga = ga, ga_gfactor = ga_gfactor, ga_lrate = ga_lrate,
+                          ga_restart_every = ga_restart_every, warn = FALSE)[1]
+
+
+  if(lowerp > alpha/ 2) {
+    warning("Confidence interval may not be valid! p-value at lower confidence limit is greater than alpha/2. Please calculate and provide the argument p_value_limits. Run again with arguments: ", paste0(", conf_int = FALSE, psi0 = ", round(psi_limits[1] + itp_eps, 3), ", alternative = 'less')", ", save the p-value as pl, and run again providing p_value_limits = c(", paste0("pl", ", ", alpha/2 - itp_eps, ")")) , call. = FALSE)
+  }
+
+  upperp <-   pvalue_psi0(psi0 = upper_limit, f_param = f_param, psi_hat = psi_hat, psi_obs = psi_obs,
+                          alternative = "greater",
+                          maxit = maxit, chunksize = chunksize,
+                          p_target = p_target, SSpacearr = spacelist$Sspace, logC = spacelist$logC,
+                          d_k = d_k, f_is_vectorized = f_is_vectorized,
+                          theta_sampler = theta_sampler,
+                          ga = ga, ga_gfactor = ga_gfactor, ga_lrate = ga_lrate,
+                          ga_restart_every = ga_restart_every, warn = FALSE)[2]
+
+
+  if(upperp > alpha/ 2) {
+    warning("Confidence interval may not be valid! p-value at upper confidence limit is greater than alpha/2. Please calculate and provide the argument p_value_limits. Run again with arguments: ", paste0(", conf_int = FALSE, psi0 = ", round(psi_limits[2] - itp_eps, 3), ", alternative = 'greater')", ", save the p-value as pu, and run again providing p_value_limits = c(", paste0(alpha/2 - itp_eps, ", pu)")) , call. = FALSE)
+  }
+  }
+
   c(lower_limit, upper_limit)
   } else c(NA, NA)
 
   p.sequence <- attr(pvalues, "p.sequence")
 
   attr(confint, "conf.level") = 1 - alpha
+  f_pname <- if(!user_stat) {
+    deparse1(substitute(f_param))
+  } else {
+    deparse1(substitute(statistic))
+  }
+  names(psi_obs) <- f_pname
 
   res <- list(
     estimate = psi_obs,
@@ -405,7 +453,7 @@ xactonomial <- function(data, f_param, statistic = NULL, psi0 = NULL,
 }
 
 
-#' Compute a p value for the test of psi <= psi0 (lower = TRUE) or psi >= psi0 (lower = FALSE)
+#' Compute a p value for the test of psi <= psi0 and/or psi >= psi0
 #'
 #' @param psi0 The null hypothesis value for the parameter being tested.
 #' @param f_param Function that takes in parameters and outputs a real

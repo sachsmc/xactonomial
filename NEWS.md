@@ -1,3 +1,9 @@
+# xactonomial 1.2.0
+* Change argument name to f_param for clarity. 
+* Minor changes to internal code
+* Minor tweaks to warnings, examples, and documentation
+* Improved checks for confidence intervals near the boundary
+
 # xactonomial 1.1.0
 * Change algorithm to give sensible results when no points from the null space are sampled from
 * Add seed argument with default so that things are reproducible by default

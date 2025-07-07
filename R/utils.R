@@ -79,6 +79,9 @@ NULL
 #'
 rdirich_dk_vects <- function(nsamp, alpha) {
 
+  if(!is.list(alpha)) {
+    stop("alpha must be a list where each element specifies the shape parameters in a vector.")
+  }
   d_k <- sapply(alpha, length)
   do.call("cbind", lapply(1:length(d_k), \(i) {
 

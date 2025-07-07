@@ -56,13 +56,13 @@ the range of \eqn{\tau(\theta)}}
 
 \item{itp_eps}{Epsilon value to use for the ITP algorithm. Only relevant if conf_int = TRUE.}
 
-\item{p_value_limits}{A vector of length 2 giving lower bounds on the p-values corresponding to psi0 at psi_limits. Only relvant if conf_int = TRUE.}
+\item{p_value_limits}{A vector of length 2 giving lower bounds on the p-values corresponding to psi0 at psi_limits. Only relevant if conf_int = TRUE.}
 
 \item{maxit}{Maximum number of iterations of the Monte Carlo procedure}
 
 \item{chunksize}{The number of samples to take from the parameter space at each iteration}
 
-\item{theta_sampler}{Function to take samples from the \eqn{Theta} parameter space. Default is \link{runif_dk_vects}.}
+\item{theta_sampler}{Function to take samples from the \eqn{Theta} parameter space. Default is \link{runif_dk_vects}. Must be a function of two parameters \code{d_k} a vector of dimensions, and \code{chunksize} the number of samples to take, and return a matrix with \code{sum(d_k)} columns and \code{chunksize} rows. See examples.}
 
 \item{ga}{Logical, if TRUE, uses gradient ascent.}
 
@@ -201,6 +201,15 @@ xactonomial(data, tau_max, psi_limits = c(1 / 3, 1), psi0 = 1/ 3,
   conf_int = TRUE, theta_null_points = t(c(1/3, 1/3, 1/3)),
   p_value_limits = c(.1, 1e-8))
 
+## specifying theta_sampler
+
+dirich_sampler <- function(d_k, chunksize){
+ rdirich_dk_vects(chunksize, list(1:4 + 1))
+}
+
+xactonomial(list(1:4),tau_max,
+            psi_limits = c(0.25,1),
+            theta_sampler = dirich_sampler)
 
 }
 \references{
