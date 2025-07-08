@@ -56,7 +56,7 @@ the range of \eqn{\tau(\theta)}}
 
 \item{itp_eps}{Epsilon value to use for the ITP algorithm. Only relevant if conf_int = TRUE.}
 
-\item{p_value_limits}{A vector of length 2 giving lower bounds on the p-values corresponding to psi0 at psi_limits. Only relevant if conf_int = TRUE.}
+\item{p_value_limits}{A vector of length 2 giving lower bounds on the one-sided p-values corresponding to psi0 = psi_limits, with alternative = "less" and "greater", respectively. Only relevant if conf_int = TRUE. See examples.}
 
 \item{maxit}{Maximum number of iterations of the Monte Carlo procedure}
 
@@ -208,7 +208,7 @@ dirich_sampler <- function(d_k, chunksize){
 }
 
 xactonomial(list(1:4),tau_max,
-            psi_limits = c(0.25,1),
+            psi_limits = c(0.25,1), psi0 = .5, conf_int = FALSE,
             theta_sampler = dirich_sampler)
 
 }

@@ -86,7 +86,7 @@
 #' @param conf_level A number between 0 and 1, the confidence level.
 #' @param itp_maxit Maximum iterations to use in the ITP algorithm. Only relevant if conf_int = TRUE.
 #' @param itp_eps Epsilon value to use for the ITP algorithm. Only relevant if conf_int = TRUE.
-#' @param p_value_limits A vector of length 2 giving lower bounds on the p-values corresponding to psi0 at psi_limits. Only relevant if conf_int = TRUE.
+#' @param p_value_limits A vector of length 2 giving lower bounds on the one-sided p-values corresponding to psi0 = psi_limits, with alternative = "less" and "greater", respectively. Only relevant if conf_int = TRUE. See examples.
 #' @param maxit Maximum number of iterations of the Monte Carlo procedure
 #' @param chunksize The number of samples to take from the parameter space at each iteration
 #' @param theta_sampler Function to take samples from the \eqn{Theta} parameter space. Default is \link{runif_dk_vects}. Must be a function of two parameters \code{d_k} a vector of dimensions, and \code{chunksize} the number of samples to take, and return a matrix with \code{sum(d_k)} columns and \code{chunksize} rows. See examples.
@@ -156,7 +156,7 @@
 #' }
 #'
 #' xactonomial(list(1:4),tau_max,
-#'             psi_limits = c(0.25,1),
+#'             psi_limits = c(0.25,1), psi0 = .5, conf_int = FALSE,
 #'             theta_sampler = dirich_sampler)
 #'
 
@@ -298,7 +298,7 @@ xactonomial <- function(data, f_param, statistic = NULL, psi0 = NULL,
     pest <- pvalue_psi0(x, f_param, psi_hat, psi_obs, maxit = maxit, chunksize = chunksize,
                 p_target = p_target, SSpacearr = SSpacearr, logC = logC,
                 d_k = d_k, f_is_vectorized = f_is_vectorized,
-                theta_sampler = theta_sampler,
+                theta_sampler = theta_sampler, alternative = "greater",
                 ga = ga, ga_gfactor = ga_gfactor, ga_lrate = ga_lrate,
                 ga_restart_every = ga_restart_every, warn = FALSE)[1]
     (if(is.na(pest)) 0 else pest) - alpha / 2
@@ -326,7 +326,7 @@ xactonomial <- function(data, f_param, statistic = NULL, psi0 = NULL,
     pest <- pvalue_psi0(x, f_param, psi_hat, psi_obs, maxit = maxit, chunksize = chunksize,
                 p_target = p_target, SSpacearr = SSpacearr, logC = logC,
                 d_k = d_k, f_is_vectorized = f_is_vectorized,
-                theta_sampler = theta_sampler,
+                theta_sampler = theta_sampler, alternative = "less",
                 ga = ga, ga_gfactor = ga_gfactor, ga_lrate = ga_lrate,
                 ga_restart_every = ga_restart_every, warn = FALSE)[2]
     (if(is.na(pest)) 0 else pest) - alpha / 2
@@ -393,9 +393,9 @@ xactonomial <- function(data, f_param, statistic = NULL, psi0 = NULL,
   }
 
 
-  if(missing(p_value_limits)) {
+  if(missing(p_value_limits) & is.null(theta_null_points)) {
   lowerp <-   pvalue_psi0(psi0 = lower_limit, f_param = f_param, psi_hat = psi_hat, psi_obs = psi_obs,
-                          alternative = "less",
+                         # alternative = "less",
                           maxit = maxit, chunksize = chunksize,
                           p_target = p_target, SSpacearr = spacelist$Sspace, logC = spacelist$logC,
                           d_k = d_k, f_is_vectorized = f_is_vectorized,
@@ -405,11 +405,13 @@ xactonomial <- function(data, f_param, statistic = NULL, psi0 = NULL,
 
 
   if(lowerp > alpha/ 2) {
-    warning("Confidence interval may not be valid! p-value at lower confidence limit is greater than alpha/2. Please calculate and provide the argument p_value_limits. Run again with arguments: ", paste0(", conf_int = FALSE, psi0 = ", round(psi_limits[1] + itp_eps, 3), ", alternative = 'less')", ", save the p-value as pl, and run again providing p_value_limits = c(", paste0("pl", ", ", alpha/2 - itp_eps, ")")) , call. = FALSE)
+    warning("No root found for lower confidence limit, using lower boundary.")
+    lower_limit <- psi_limits[1]
+
   }
 
   upperp <-   pvalue_psi0(psi0 = upper_limit, f_param = f_param, psi_hat = psi_hat, psi_obs = psi_obs,
-                          alternative = "greater",
+                          #alternative = "greater",
                           maxit = maxit, chunksize = chunksize,
                           p_target = p_target, SSpacearr = spacelist$Sspace, logC = spacelist$logC,
                           d_k = d_k, f_is_vectorized = f_is_vectorized,
@@ -419,7 +421,8 @@ xactonomial <- function(data, f_param, statistic = NULL, psi0 = NULL,
 
 
   if(upperp > alpha/ 2) {
-    warning("Confidence interval may not be valid! p-value at upper confidence limit is greater than alpha/2. Please calculate and provide the argument p_value_limits. Run again with arguments: ", paste0(", conf_int = FALSE, psi0 = ", round(psi_limits[2] - itp_eps, 3), ", alternative = 'greater')", ", save the p-value as pu, and run again providing p_value_limits = c(", paste0(alpha/2 - itp_eps, ", pu)")) , call. = FALSE)
+    warning("No root found for upper confidence limit, using upper boundary.")
+    upper_limit <- psi_limits[2]
   }
   }
 
@@ -504,7 +507,7 @@ pvalue_psi0 <- function(psi0, f_param, psi_hat, psi_obs, alternative = "two.side
   theta_cands <- theta_sampler(d_k, chunksize)
   null_continue <- alt_continue <- TRUE
   if(alternative == "greater") alt_continue <- FALSE
-  if(alternative == "lower") null_continue <- FALSE
+  if(alternative == "less") null_continue <- FALSE
   null_stop <- alt_stop <- maxit
   never_null <- null_continue
   never_alt <- alt_continue
