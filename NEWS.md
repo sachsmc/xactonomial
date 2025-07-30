@@ -3,6 +3,7 @@
 * Minor changes to internal code
 * Minor tweaks to warnings, examples, and documentation
 * Improved checks for confidence intervals near the boundary
+* Added citation
 
 # xactonomial 1.1.0
 * Change algorithm to give sensible results when no points from the null space are sampled from
