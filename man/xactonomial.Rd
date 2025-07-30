@@ -106,7 +106,7 @@ in the parameter \eqn{\psi = \tau(\boldsymbol{\theta}) \in \Psi \subseteq
 \eqn{\boldsymbol{X} = (X_1, \ldots, X_k)}, which is a vector of counts obtained
 by concatenating the k independent count vectors, let \eqn{G(\boldsymbol{X})}
 denote a real-valued statistic that defines the ordering of the sample space.
-Tne default choice of the statistic is to estimate \eqn{\boldsymbol{\theta}}
+The default choice of the statistic is to estimate \eqn{\boldsymbol{\theta}}
 with the sample proportions and plug them into \eqn{\tau(\boldsymbol{\theta})}.
 This function calculates a p value for a test of the null hypothesis
 \eqn{H_0: \psi \neq \psi_0} for the two sided case,
