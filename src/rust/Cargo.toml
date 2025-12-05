@@ -11,3 +11,4 @@ name = 'xactonomial'
 
 [dependencies]
 extendr-api = '*'
+rand = { git = "https://github.com/rust-random/rand", version = "0.10.0-rc.5" }

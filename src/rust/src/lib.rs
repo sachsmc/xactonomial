@@ -1,6 +1,7 @@
 pub mod rbindings;
 use extendr_api::prelude::*;
 use crate::rbindings::*;
+use rand::seq::index::sample;
 
 /// Enumerate the multinomial sample space
 /// @param d The dimension
@@ -39,6 +40,59 @@ fn sspace_multinom(d: u32, n: u32) -> Vec<u32> {
   res
 
 }
+
+
+/// Get a sumsample of the multinomial sample space
+/// @param d The dimension
+/// @param n The sample size
+/// @param k The number of elements to keep
+/// @returns A vector with a subsample from the sample space, to be converted to a matrix
+/// with d columns and k <= choose(n + d - 1, d - 1) rows
+/// @export
+/// @examples
+/// matrix(sspace_multinom_sample(3, 5, 25), ncol = 3, byrow = TRUE)
+#[extendr]
+fn sspace_multinom_sample(d: u32, n: u32, k: u32) -> Vec<u32> {
+
+  let mut nmax = 1 as u32;
+  for i in 1..d {
+    nmax = nmax * (n + d - i) / i;
+  }
+
+  let vals = sample(&mut rand::rng(), nmax as usize, k as usize).into_vec();
+
+  let di = d as usize;
+  let mut bins = vec![0; di];
+  bins[0] = n;
+  let mut res = bins.clone();
+
+  let mut i = 1 as usize;
+  loop {
+    if &bins[di - 1] == &n {
+      break;
+    }
+    if bins[0] > 0 {
+      bins[0] -= 1;
+      bins[1] += 1;
+    } else {
+      let mut nz = 1usize;
+      while bins[nz-1] == 0 {
+        nz += 1;
+      }
+      bins[0] = &bins[nz-1] - 1;
+      bins[nz] += 1;
+      bins[nz-1] = 0;
+      }
+    if vals.contains(&i) {
+      res.extend(&bins);
+    }
+    i += 1;
+  }
+
+  res
+
+}
+
 
 
 /// Return a single random sample from the d unit simplex
@@ -133,7 +187,17 @@ fn calc_multinom_probs(sar: Vec<f64>, logt: Vec<f64>, logc: Vec<f64>, d: u32, n:
 
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
 
+    #[test]
+    fn it_works() {
+        let result = sspace_multinom(4, 2);
+        assert_eq!(result.len(), 40);
+
+    }
+}
 
 
 // Macro to generate exports.
@@ -144,4 +208,5 @@ extendr_module! {
     fn sample_unit_simplexn;
     fn calc_multinom_probs;
     fn sspace_multinom;
+    fn sspace_multinom_sample;
 }

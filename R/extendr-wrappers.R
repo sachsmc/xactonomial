@@ -45,5 +45,16 @@ calc_multinom_probs <- function(sar, logt, logc, d, n, nt) .Call(wrap__calc_mult
 #' matrix(sspace_multinom(3, 5), ncol = 3, byrow = TRUE)
 sspace_multinom <- function(d, n) .Call(wrap__sspace_multinom, d, n)
 
+#' Get a sumsample of the multinomial sample space
+#' @param d The dimension
+#' @param n The sample size
+#' @param k The number of elements to keep
+#' @returns A vector with a subsample from the sample space, to be converted to a matrix
+#' with d columns and k <= choose(n + d - 1, d - 1) rows
+#' @export
+#' @examples
+#' matrix(sspace_multinom_sample(3, 5, 25), ncol = 3, byrow = TRUE)
+sspace_multinom_sample <- function(d, n, k) .Call(wrap__sspace_multinom_sample, d, n, k)
+
 
 # nolint end

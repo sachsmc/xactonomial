@@ -8,8 +8,9 @@ test_that("confidence intervals for boundary problems", {
   }
 
   data_test <- list(c(0, 5))
+  expect_warning({
   xact_bin <- xactonomial(data_test, psi_binom, psi_limits = c(0, 1), maxit = 100, chunksize = 50)
-
+  })
   expect_true(abs(xact_bin$conf.int[1] - 0) < 1e-8)
 
 
