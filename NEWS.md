@@ -1,3 +1,7 @@
+# xactonomial 1.2.1
+* Feature, subsampling of sample space.
+* Update vendored extendr-ffi to 0.9.0 to fix CRAN NOTE about non-API call to `R_NamespaceRegistry`.
+
 # xactonomial 1.2.0
 * Change argument name to f_param for clarity. 
 * Minor changes to internal code

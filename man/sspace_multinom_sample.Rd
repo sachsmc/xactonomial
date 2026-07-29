@@ -21,5 +21,5 @@ with d columns and k <= choose(n + d - 1, d - 1) rows
 Get a sumsample of the multinomial sample space
 }
 \examples{
-matrix(sspace_multinom_sample(3, 5, 25), ncol = 3, byrow = TRUE)
+matrix(sspace_multinom_sample(3, 5, 10), ncol = 3, byrow = TRUE)
 }

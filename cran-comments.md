@@ -1,1 +1,1 @@
-* This is an update. I have updated and improved the documentation, improved reproducibility, improved error handling, and added a citation file. 
+* This is an update to fix the NOTE on CRAN checks: "Found non-API call to R: 'R_NamespaceRegistry'". This was caused by an outdated version of extendr-ffi/src/lib.rs shipped in the vendored Rust dependencies (src/rust/vendor.tar.xz). I have updated the vendored extendr-ffi crate to 0.9.0, which no longer references this non-API symbol, and tested it on the usual platforms using Rhub and win-builder.

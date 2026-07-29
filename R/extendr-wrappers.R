@@ -53,7 +53,7 @@ sspace_multinom <- function(d, n) .Call(wrap__sspace_multinom, d, n)
 #' with d columns and k <= choose(n + d - 1, d - 1) rows
 #' @export
 #' @examples
-#' matrix(sspace_multinom_sample(3, 5, 25), ncol = 3, byrow = TRUE)
+#' matrix(sspace_multinom_sample(3, 5, 10), ncol = 3, byrow = TRUE)
 sspace_multinom_sample <- function(d, n, k) .Call(wrap__sspace_multinom_sample, d, n, k)
 
 

@@ -50,7 +50,7 @@ fn sspace_multinom(d: u32, n: u32) -> Vec<u32> {
 /// with d columns and k <= choose(n + d - 1, d - 1) rows
 /// @export
 /// @examples
-/// matrix(sspace_multinom_sample(3, 5, 25), ncol = 3, byrow = TRUE)
+/// matrix(sspace_multinom_sample(3, 5, 10), ncol = 3, byrow = TRUE)
 #[extendr]
 fn sspace_multinom_sample(d: u32, n: u32, k: u32) -> Vec<u32> {
 

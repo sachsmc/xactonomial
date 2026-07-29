@@ -1,8 +1,8 @@
 Package: xactonomial
 Type: Package
 Title: Inference for Functions of Multinomial Parameters
-Version: 1.2.0
-Date: 2025-07-30
+Version: 1.2.1
+Date: 2026-07-29
 Authors@R: 
     c(person(given = "Michael C",
              family = "Sachs",
@@ -20,7 +20,7 @@ Description: We consider the problem where we observe k vectors (possibly of dif
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-SystemRequirements: Cargo (Rust's package manager), rustc >= 1.70
+SystemRequirements: Cargo (Rust's package manager), rustc >= 1.71
 Suggests: 
     knitr,
     rmarkdown,
