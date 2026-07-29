@@ -4,8 +4,8 @@ bibentry(
   author="Sachs, Michael C and Gabriel, Erin E and Fay, Michael P",
   journal  = "Scandinavian Journal of Statistics",
   year     = "2025",
-  volume   = "",
-  number   = "",
-  pages    = "In press",
+  volume   = "52",
+  number   = "4",
+  pages    = "1881-1898",
   doi      = ""
 )
