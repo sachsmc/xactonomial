@@ -22,7 +22,7 @@ problem.” *Scandinavian Journal of Statistics*, **52**(4), 1881-1898.
 
     @Article{,
       title = {Improved small-sample inference for functions of parameters in the k-sample multinomial problem},
-      author = {{Sachs} and Michael C and {Gabriel} and Erin E and {Fay} and Michael P},
+      author = {Michael C Sachs and Erin E Gabriel and Michael P Fay},
       journal = {Scandinavian Journal of Statistics},
       year = {2025},
       volume = {52},
