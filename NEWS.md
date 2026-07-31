@@ -1,3 +1,7 @@
+# xactonomial 1.2.2
+* Fix installation failures on CRAN. The `cargo test`
+  step has been removed to match the standard rextendr build recipe.
+
 # xactonomial 1.2.1
 * Feature, subsampling of sample space.
 * Update vendored extendr-ffi to 0.9.0 to fix CRAN NOTE about non-API call to `R_NamespaceRegistry`.

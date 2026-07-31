@@ -1,8 +1,8 @@
 Package: xactonomial
 Type: Package
 Title: Inference for Functions of Multinomial Parameters
-Version: 1.2.1
-Date: 2026-07-29
+Version: 1.2.2
+Date: 2026-07-31
 Authors@R: 
     c(person(given = "Michael C",
              family = "Sachs",
